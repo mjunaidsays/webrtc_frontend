@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useMeeting } from '../context/MeetingContext';
 
-const WS_URL = 'wss://56ae-221-132-116-194.ngrok-free.app/ws/chat/';
+const WS_URL = 'wss://c4ea-221-132-116-194.ngrok-free.app/ws/chat/';
 
 export default function ChatSidebar() {
   const { user, room } = useMeeting();

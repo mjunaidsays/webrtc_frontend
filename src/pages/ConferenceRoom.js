@@ -152,7 +152,7 @@ export default function ConferenceRoom() {
     async function startAudioStreaming() {
       try {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        ws = new window.WebSocket(`wss://56ae-221-132-116-194.ngrok-free.app/ws/audio/${roomId}`);
+        ws = new window.WebSocket(`wss://c4ea-221-132-116-194.ngrok-free.app/ws/audio/${roomId}`);
         audioWSRef.current = ws;
         ws.onopen = () => {
           mediaRecorder = new window.MediaRecorder(stream, { mimeType: 'audio/webm' });
@@ -221,7 +221,7 @@ export default function ConferenceRoom() {
     }
 
     try {
-      await fetch(`https://56ae-221-132-116-194.ngrok-free.app/api/meetings/${roomId}/end`, {
+      await fetch(`https://c4ea-221-132-116-194.ngrok-free.app/api/meetings/${roomId}/end`, {
         method: 'POST'
       });
     } catch (error) {
@@ -229,40 +229,43 @@ export default function ConferenceRoom() {
     }
   };
 
-  const pollForSummary = () => {
+  const pollForSummary = async () => {
     setSummaryLoading(true);
     setSummaryError('');
     let attempts = 0;
-    const maxAttempts = 30; // 30 x 2s = 60s
-    const interval = setInterval(async () => {
+    const maxAttempts = 90; // 90 x 2s = 180s (3 minutes)
+    let found = false;
+    const checkSummary = async () => {
       attempts++;
-      console.log('Polling for summary... attempt', attempts);
       try {
-        const res = await fetch(`https://56ae-221-132-116-194.ngrok-free.app/api/insights/${roomId}/view`);
+        const res = await fetch(`https://c4ea-221-132-116-194.ngrok-free.app/api/insights/${roomId}/view`);
         if (res.ok) {
           const data = await res.json();
           if (data.summary) {
             setSummary(data);
             setSummaryLoading(false);
             setSummaryGenerated(true);
-            clearInterval(interval);
+            found = true;
+            return true;
           } else if (data.message) {
-            if (attempts >= maxAttempts) {
-              setSummaryError('Summary generation timed out. Please try again.');
-              setSummaryLoading(false);
-              clearInterval(interval);
-            }
+            // If backend says summary is being generated, keep polling
           }
         }
       } catch (error) {
-        if (attempts >= maxAttempts) {
-          setSummaryError('Failed to generate summary. Please try again.');
-          setSummaryLoading(false);
-          clearInterval(interval);
-        }
+        // Ignore errors, keep polling
+      }
+      return false;
+    };
+    // First, check immediately (for retry case)
+    if (await checkSummary()) return;
+    const interval = setInterval(async () => {
+      if (await checkSummary()) {
+        clearInterval(interval);
+        return;
       }
       if (attempts >= maxAttempts) {
         setSummaryLoading(false);
+        setSummaryError('Summary generation timed out. Please try again.');
         clearInterval(interval);
       }
     }, 2000);

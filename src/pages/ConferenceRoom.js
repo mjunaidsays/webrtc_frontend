@@ -18,6 +18,7 @@ export default function ConferenceRoom() {
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryGenerated, setSummaryGenerated] = useState(false);
   const [summaryError, setSummaryError] = useState('');
+  const [summaryMessage, setSummaryMessage] = useState('');
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
 
@@ -170,7 +171,7 @@ export default function ConferenceRoom() {
             const formData = new FormData();
             formData.append('audio_file', audioBlob, `${roomId}.webm`);
             try {
-              await fetch(`https://cb3b-221-132-116-194.ngrok-free.app/api/transcriptions/${roomId}/upload`, {
+              await fetch(`https://1d25-221-132-116-194.ngrok-free.app/api/transcriptions/${roomId}/upload`, {
                 method: 'POST',
                 body: formData
               });
@@ -204,7 +205,7 @@ export default function ConferenceRoom() {
     // Wait for upload to finish before ending meeting
     await uploadPromise;
     try {
-      await fetch(`https://cb3b-221-132-116-194.ngrok-free.app/api/meetings/${roomId}/end`, {
+      await fetch(`https://1d25-221-132-116-194.ngrok-free.app/api/meetings/${roomId}/end`, {
         method: 'POST'
       });
     } catch (error) {
@@ -215,13 +216,14 @@ export default function ConferenceRoom() {
   const pollForSummary = async () => {
     setSummaryLoading(true);
     setSummaryError('');
+    setSummaryMessage('');
     let attempts = 0;
     const maxAttempts = 90; // 90 x 2s = 180s (3 minutes)
     let found = false;
     const checkSummary = async () => {
       attempts++;
       try {
-        const res = await fetch(`https://cb3b-221-132-116-194.ngrok-free.app/api/insights/${roomId}/view`);
+        const res = await fetch(`https://1d25-221-132-116-194.ngrok-free.app/api/insights/${roomId}/view`);
         if (res.ok) {
           const data = await res.json();
           if (data.summary) {
@@ -230,8 +232,12 @@ export default function ConferenceRoom() {
             setSummaryGenerated(true);
             found = true;
             return true;
-          } else if (data.message) {
-            // If backend says summary is being generated, keep polling
+          } else if (data.message && !data.summary) {
+            setSummaryMessage(data.message);
+            setSummaryLoading(false);
+            setSummaryGenerated(false);
+            found = true;
+            return true;
           }
         }
       } catch (error) {
@@ -299,7 +305,7 @@ export default function ConferenceRoom() {
         <div className="summary-overlay">
           <div className="summary-card">
             <h3>🎉 Meeting Ended!</h3>
-            {!summaryGenerated && !summaryLoading && (
+            {!summaryGenerated && !summaryLoading && !summaryMessage && (
               <>
                 <p>Click the button below to generate your meeting summary.</p>
                 <button onClick={handleGenerateSummary} className="generate-summary-btn">
@@ -336,6 +342,11 @@ export default function ConferenceRoom() {
                   📋 View Full Summary
                 </button>
               </>
+            )}
+            {summaryMessage && !summaryGenerated && !summaryLoading && (
+              <div className="no-summary-message">
+                <p>{summaryMessage}</p>
+              </div>
             )}
             <button onClick={() => navigate('/')} className="home-btn">
               🏠 Back to Home

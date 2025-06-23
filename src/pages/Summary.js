@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useMeeting } from '../context/MeetingContext';
 import './Summary.css';
 
-const API_URL = 'https://cb3b-221-132-116-194.ngrok-free.app/api';
+const API_URL = 'https://1d25-221-132-116-194.ngrok-free.app/api';
 const MAX_WAIT_SECONDS = 30;
 
 export default function Summary() {

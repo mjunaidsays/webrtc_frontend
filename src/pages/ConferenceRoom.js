@@ -21,7 +21,6 @@ export default function ConferenceRoom() {
   const [summaryMessage, setSummaryMessage] = useState('');
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
-  const [autoPolled, setAutoPolled] = useState(false);
 
   // Remove Jitsi iframe only when meeting has ended
   const removeJitsiIframe = () => {
@@ -57,7 +56,7 @@ export default function ConferenceRoom() {
     let script;
     async function createJitsiMeetingWithJWT() {
       // Use a hardcoded JWT for testing
-      const hardcodedJWT = "eyJraWQiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQvZDM3ZmMzLVNBTVBMRV9BUFAiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6ImNoYXQiLCJpYXQiOjE3NTA2Nzc0MDUsImV4cCI6MTc1MDY4NDYwNSwibmJmIjoxNzUwNjc3NDAwLCJzdWIiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQiLCJjb250ZXh0Ijp7ImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOnRydWUsIm91dGJvdW5kLWNhbGwiOnRydWUsInNpcC1vdXRib3VuZC1jYWxsIjpmYWxzZSwidHJhbnNjcmlwdGlvbiI6dHJ1ZSwicmVjb3JkaW5nIjp0cnVlLCJmbGlwIjpmYWxzZX0sInVzZXIiOnsiaGlkZGVuLWZyb20tcmVjb3JkZXIiOmZhbHNlLCJtb2RlcmF0b3IiOnRydWUsIm5hbWUiOiJtanVuYWlkMjI4MjAwMSIsImlkIjoiZ29vZ2xlLW9hdXRoMnwxMTAwMTA3OTgwNzY5MDc1MDMxMDYiLCJhdmF0YXIiOiIiLCJlbWFpbCI6Im1qdW5haWQyMjgyMDAxQGdtYWlsLmNvbSJ9fSwicm9vbSI6IioifQ.m_yE2HDhqTQZtDecAAxdB6Agm07qpVSWdg2T1x1tOIDuYYgreH9vdU56ozJazX9kyQaGHogAru2MRHTH28afEui68zWoQIBRmz6OqLVzq-aX6OIJMSEIsZoYb9J6bqwJlXPg-y5kayvxTA6v8xilfxYBuSPzF_3U_asE6sLl014xheGklYKrUO2NX13D7uJv71GYQr54ZJyXkkRwGI44joIoVWTM0wDoQNaihDtrodEUqeNKoLrGTi9dS7A6zpurtHRsLF5dorZifFTcP-Ub5Nl6lRKRB5ekcicR7oh0U4DyBXP3n_r4AKAyTfI1fMzl013IapKKvPHPobddk2mnXw";
+      const hardcodedJWT = "eyJraWQiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQvZDM3ZmMzLVNBTVBMRV9BUFAiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6ImNoYXQiLCJpYXQiOjE3NTA2ODUzNTUsImV4cCI6MTc1MDY5MjU1NSwibmJmIjoxNzUwNjg1MzUwLCJzdWIiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQiLCJjb250ZXh0Ijp7ImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOnRydWUsIm91dGJvdW5kLWNhbGwiOnRydWUsInNpcC1vdXRib3VuZC1jYWxsIjpmYWxzZSwidHJhbnNjcmlwdGlvbiI6dHJ1ZSwicmVjb3JkaW5nIjp0cnVlLCJmbGlwIjpmYWxzZX0sInVzZXIiOnsiaGlkZGVuLWZyb20tcmVjb3JkZXIiOmZhbHNlLCJtb2RlcmF0b3IiOnRydWUsIm5hbWUiOiJtanVuYWlkMjI4MjAwMSIsImlkIjoiZ29vZ2xlLW9hdXRoMnwxMTAwMTA3OTgwNzY5MDc1MDMxMDYiLCJhdmF0YXIiOiIiLCJlbWFpbCI6Im1qdW5haWQyMjgyMDAxQGdtYWlsLmNvbSJ9fSwicm9vbSI6IioifQ.LmmtTElme5tuSRKfekLE1g2zF5vMwV1zoBv5xacWos7Ii6p71JSYYDOMgaI4_yoKQ0dscaC8-AMU6jSgDZalsp7n3BYsoR24kMNbX4MbONVXUSpX1dzdu4n6feSHBRVr5SYNIT8CByASqGx5ROhKRaXexzKWCvpAkEF5tcobRQYhsliHbQ92yOHujsWF8u6UR13Mu1Xc6F5aEJNai7FO5HcGY8RWst4rD_Qjn0T15Tt9IwsFJOV295uefHzVdM_2CAiev8WtfZz-qimmVMSxEykuTbeDElr9mgI9C-h2EedFm_753FGrdwxKKG2tOtxsIJ-DOfitDBUg3IdvSTxswA";
       const room = `${JAAS_APP_ID}/${roomId}`;
       if (window.JitsiMeetExternalAPI && jitsiRef.current && !meetingEnded) {
         if (apiRef.current) {
@@ -213,19 +212,6 @@ export default function ConferenceRoom() {
       console.error('Failed to end meeting:', error);
     }
   };
-
-  // Start polling automatically after meeting ends
-  useEffect(() => {
-    if (meetingEnded && !autoPolled && !summaryGenerated && !summaryLoading) {
-      setAutoPolled(true);
-      pollForSummary();
-    }
-    // Reset autoPolled if user starts a new meeting
-    if (!meetingEnded && autoPolled) {
-      setAutoPolled(false);
-    }
-    // eslint-disable-next-line
-  }, [meetingEnded]);
 
   const pollForSummary = async () => {
     setSummaryLoading(true);

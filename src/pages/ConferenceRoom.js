@@ -226,7 +226,8 @@ export default function ConferenceRoom() {
         const res = await fetch(`https://cc19-221-132-116-194.ngrok-free.app/api/insights/${roomId}/view`);
         if (res.ok) {
           const data = await res.json();
-          if (data.summary) {
+          console.log('Summary API response:', data);
+          if (typeof data.summary === 'string' && data.summary.trim().length > 0) {
             setSummary(data);
             setSummaryLoading(false);
             setSummaryGenerated(true);

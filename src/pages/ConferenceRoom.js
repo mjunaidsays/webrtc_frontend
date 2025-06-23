@@ -152,7 +152,7 @@ export default function ConferenceRoom() {
     async function startAudioStreaming() {
       try {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        ws = new window.WebSocket(`wss://3349-221-132-116-194.ngrok-free.app/ws/audio/${roomId}`);
+        ws = new window.WebSocket(`wss://56ae-221-132-116-194.ngrok-free.app/ws/audio/${roomId}`);
         audioWSRef.current = ws;
         ws.onopen = () => {
           mediaRecorder = new window.MediaRecorder(stream, { mimeType: 'audio/webm' });
@@ -221,7 +221,7 @@ export default function ConferenceRoom() {
     }
 
     try {
-      await fetch(`https://3349-221-132-116-194.ngrok-free.app/api/meetings/${roomId}/end`, {
+      await fetch(`https://56ae-221-132-116-194.ngrok-free.app/api/meetings/${roomId}/end`, {
         method: 'POST'
       });
     } catch (error) {
@@ -238,7 +238,7 @@ export default function ConferenceRoom() {
       attempts++;
       console.log('Polling for summary... attempt', attempts);
       try {
-        const res = await fetch(`https://3349-221-132-116-194.ngrok-free.app/api/insights/${roomId}/view`);
+        const res = await fetch(`https://56ae-221-132-116-194.ngrok-free.app/api/insights/${roomId}/view`);
         if (res.ok) {
           const data = await res.json();
           if (data.summary) {

@@ -18,8 +18,8 @@ export default function ConferenceRoom() {
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryGenerated, setSummaryGenerated] = useState(false);
   const [summaryError, setSummaryError] = useState('');
-  const audioWSRef = useRef(null);
   const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
   // Remove Jitsi iframe only when meeting has ended
   const removeJitsiIframe = () => {
@@ -127,59 +127,32 @@ export default function ConferenceRoom() {
     };
   }, [user, roomId, navigate, meetingEnded]);
 
-  // Additional effect to ensure summary overlay is always visible when meeting ends
-  useEffect(() => {
-    if (meetingEnded) {
-      // Force hide any remaining Jitsi content
-      const jitsiElements = document.querySelectorAll('[data-testid="jitsi-meeting"], iframe[src*="jitsi"]');
-      jitsiElements.forEach(element => {
-        element.style.display = 'none';
-        element.style.visibility = 'hidden';
-        element.style.opacity = '0';
-        element.style.zIndex = '-1';
-      });
-    }
-  }, [meetingEnded]);
-
-  // Start audio streaming when meeting starts
+  // Audio recording logic
   useEffect(() => {
     if (!isCallActive || meetingEnded) return;
-    let stopped = false;
-    let ws;
     let mediaRecorder;
+    let audioChunks = [];
     let stream;
-
-    async function startAudioStreaming() {
+    async function startRecording() {
       try {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        ws = new window.WebSocket(`wss://cb3b-221-132-116-194.ngrok-free.app/ws/audio/${roomId}`);
-        audioWSRef.current = ws;
-        ws.onopen = () => {
-          mediaRecorder = new window.MediaRecorder(stream, { mimeType: 'audio/webm' });
-          mediaRecorderRef.current = mediaRecorder;
-          mediaRecorder.ondataavailable = (event) => {
-            if (event.data.size > 0 && ws.readyState === 1) {
-              event.data.arrayBuffer().then(buf => ws.send(buf));
-            }
-          };
-          mediaRecorder.start(1000); // send every 1s
+        mediaRecorder = new window.MediaRecorder(stream, { mimeType: 'audio/webm' });
+        mediaRecorderRef.current = mediaRecorder;
+        audioChunksRef.current = [];
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunksRef.current.push(event.data);
+          }
         };
-        ws.onclose = () => {
-          if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-          if (stream) stream.getTracks().forEach(track => track.stop());
-        };
+        mediaRecorder.start();
       } catch (err) {
-        console.error('Audio streaming error:', err);
+        console.error('Audio recording error:', err);
       }
     }
-    startAudioStreaming();
+    startRecording();
     return () => {
-      stopped = true;
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         mediaRecorderRef.current.stop();
-      }
-      if (audioWSRef.current && audioWSRef.current.readyState === 1) {
-        audioWSRef.current.close();
       }
       if (stream) stream.getTracks().forEach(track => track.stop());
     };
@@ -187,24 +160,16 @@ export default function ConferenceRoom() {
 
   const handleEndMeeting = async () => {
     setMeetingEnded(true);
-    
-    // Stop audio streaming
+    // Stop audio recording
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
     }
-    if (audioWSRef.current && audioWSRef.current.readyState === 1) {
-      audioWSRef.current.close();
-    }
-
     // Aggressively hide the Jitsi iframe
     if (jitsiRef.current) {
-      // Hide the entire Jitsi container
       jitsiRef.current.style.display = 'none';
       jitsiRef.current.style.visibility = 'hidden';
       jitsiRef.current.style.opacity = '0';
       jitsiRef.current.style.zIndex = '-1';
-
-      // Also hide any iframes inside
       const iframes = jitsiRef.current.querySelectorAll('iframe');
       iframes.forEach(iframe => {
         iframe.style.display = 'none';
@@ -213,13 +178,24 @@ export default function ConferenceRoom() {
         iframe.style.zIndex = '-1';
       });
     }
-
-    // Dispose of the API
     if (apiRef.current) {
       apiRef.current.dispose();
       apiRef.current = null;
     }
-
+    // Upload audio to backend
+    if (audioChunksRef.current.length > 0) {
+      const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+      const formData = new FormData();
+      formData.append('audio_file', audioBlob, `${roomId}.webm`);
+      try {
+        await fetch(`https://cb3b-221-132-116-194.ngrok-free.app/api/transcriptions/${roomId}/upload`, {
+          method: 'POST',
+          body: formData
+        });
+      } catch (err) {
+        console.error('Failed to upload audio:', err);
+      }
+    }
     try {
       await fetch(`https://cb3b-221-132-116-194.ngrok-free.app/api/meetings/${roomId}/end`, {
         method: 'POST'

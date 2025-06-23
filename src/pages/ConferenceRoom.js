@@ -171,7 +171,7 @@ export default function ConferenceRoom() {
             const formData = new FormData();
             formData.append('audio_file', audioBlob, `${roomId}.webm`);
             try {
-              await fetch(`https://1d25-221-132-116-194.ngrok-free.app/api/transcriptions/${roomId}/upload`, {
+              await fetch(`https://cc19-221-132-116-194.ngrok-free.app/api/transcriptions/${roomId}/upload`, {
                 method: 'POST',
                 body: formData
               });
@@ -205,7 +205,7 @@ export default function ConferenceRoom() {
     // Wait for upload to finish before ending meeting
     await uploadPromise;
     try {
-      await fetch(`https://1d25-221-132-116-194.ngrok-free.app/api/meetings/${roomId}/end`, {
+      await fetch(`https://cc19-221-132-116-194.ngrok-free.app/api/meetings/${roomId}/end`, {
         method: 'POST'
       });
     } catch (error) {
@@ -223,7 +223,7 @@ export default function ConferenceRoom() {
     const checkSummary = async () => {
       attempts++;
       try {
-        const res = await fetch(`https://1d25-221-132-116-194.ngrok-free.app/api/insights/${roomId}/view`);
+        const res = await fetch(`https://cc19-221-132-116-194.ngrok-free.app/api/insights/${roomId}/view`);
         if (res.ok) {
           const data = await res.json();
           if (data.summary) {

@@ -21,6 +21,7 @@ export default function ConferenceRoom() {
   const [summaryMessage, setSummaryMessage] = useState('');
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const [autoPolled, setAutoPolled] = useState(false);
 
   // Remove Jitsi iframe only when meeting has ended
   const removeJitsiIframe = () => {
@@ -213,6 +214,19 @@ export default function ConferenceRoom() {
     }
   };
 
+  // Start polling automatically after meeting ends
+  useEffect(() => {
+    if (meetingEnded && !autoPolled && !summaryGenerated && !summaryLoading) {
+      setAutoPolled(true);
+      pollForSummary();
+    }
+    // Reset autoPolled if user starts a new meeting
+    if (!meetingEnded && autoPolled) {
+      setAutoPolled(false);
+    }
+    // eslint-disable-next-line
+  }, [meetingEnded]);
+
   const pollForSummary = async () => {
     setSummaryLoading(true);
     setSummaryError('');
@@ -233,11 +247,12 @@ export default function ConferenceRoom() {
             found = true;
             return true;
           } else if (data.message && !data.summary) {
+            // If backend says summary is being generated, keep polling
             setSummaryMessage(data.message);
-            setSummaryLoading(false);
+            setSummaryLoading(true);
             setSummaryGenerated(false);
-            found = true;
-            return true;
+            found = false;
+            return false;
           }
         }
       } catch (error) {
@@ -254,14 +269,17 @@ export default function ConferenceRoom() {
       }
       if (attempts >= maxAttempts) {
         setSummaryLoading(false);
-        setSummaryError('Summary generation timed out. Please try again.');
+        setSummaryError('This meeting does not have any summary.');
         clearInterval(interval);
       }
     }, 2000);
   };
 
   const handleGenerateSummary = () => {
-    pollForSummary();
+    // Only allow if not already loading or generated
+    if (!summaryLoading && !summaryGenerated) {
+      pollForSummary();
+    }
   };
 
   const handleViewSummary = () => {
@@ -305,10 +323,10 @@ export default function ConferenceRoom() {
         <div className="summary-overlay">
           <div className="summary-card">
             <h3>🎉 Meeting Ended!</h3>
-            {!summaryGenerated && !summaryLoading && !summaryMessage && (
+            {!summaryGenerated && !summaryLoading && !summaryMessage && !summaryError && (
               <>
                 <p>Click the button below to generate your meeting summary.</p>
-                <button onClick={handleGenerateSummary} className="generate-summary-btn">
+                <button onClick={handleGenerateSummary} className="generate-summary-btn" disabled={summaryLoading || summaryGenerated}>
                   🤖 Generate Summary
                 </button>
               </>
@@ -323,9 +341,6 @@ export default function ConferenceRoom() {
             {summaryError && (
               <div className="error-container">
                 <p className="error-message">{summaryError}</p>
-                <button onClick={handleGenerateSummary} className="retry-btn">
-                  🔄 Try Again
-                </button>
               </div>
             )}
             {summaryGenerated && summary && (
@@ -343,7 +358,7 @@ export default function ConferenceRoom() {
                 </button>
               </>
             )}
-            {summaryMessage && !summaryGenerated && !summaryLoading && (
+            {summaryMessage && !summaryGenerated && !summaryLoading && !summaryError && (
               <div className="no-summary-message">
                 <p>{summaryMessage}</p>
               </div>

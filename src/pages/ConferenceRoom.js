@@ -161,8 +161,27 @@ export default function ConferenceRoom() {
   const handleEndMeeting = async () => {
     setMeetingEnded(true);
     // Stop audio recording
+    let uploadPromise = Promise.resolve();
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop();
+      uploadPromise = new Promise((resolve) => {
+        mediaRecorderRef.current.onstop = async () => {
+          if (audioChunksRef.current.length > 0) {
+            const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+            const formData = new FormData();
+            formData.append('audio_file', audioBlob, `${roomId}.webm`);
+            try {
+              await fetch(`https://cb3b-221-132-116-194.ngrok-free.app/api/transcriptions/${roomId}/upload`, {
+                method: 'POST',
+                body: formData
+              });
+            } catch (err) {
+              console.error('Failed to upload audio:', err);
+            }
+          }
+          resolve();
+        };
+        mediaRecorderRef.current.stop();
+      });
     }
     // Aggressively hide the Jitsi iframe
     if (jitsiRef.current) {
@@ -182,20 +201,8 @@ export default function ConferenceRoom() {
       apiRef.current.dispose();
       apiRef.current = null;
     }
-    // Upload audio to backend
-    if (audioChunksRef.current.length > 0) {
-      const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-      const formData = new FormData();
-      formData.append('audio_file', audioBlob, `${roomId}.webm`);
-      try {
-        await fetch(`https://cb3b-221-132-116-194.ngrok-free.app/api/transcriptions/${roomId}/upload`, {
-          method: 'POST',
-          body: formData
-        });
-      } catch (err) {
-        console.error('Failed to upload audio:', err);
-      }
-    }
+    // Wait for upload to finish before ending meeting
+    await uploadPromise;
     try {
       await fetch(`https://cb3b-221-132-116-194.ngrok-free.app/api/meetings/${roomId}/end`, {
         method: 'POST'

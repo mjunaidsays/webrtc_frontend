@@ -5,6 +5,7 @@ import './ConferenceRoom.css';
 
 const JITSI_DOMAIN = '8x8.vc';
 const JAAS_APP_ID = 'vpaas-magic-cookie-4d98055dcb7a4e7e818e22aa1b84781d';
+const API_URL = 'https://f9cd-221-132-116-194.ngrok-free.app/api';
 
 export default function ConferenceRoom() {
   const { user } = useMeeting();
@@ -174,7 +175,7 @@ export default function ConferenceRoom() {
             const formData = new FormData();
             formData.append('audio_file', audioBlob, `${roomId}.webm`);
             try {
-              await fetch(`https://f9cd-221-132-116-194.ngrok-free.app/api/transcriptions/${roomId}/upload`, {
+              await fetch(`${API_URL}/transcriptions/${roomId}/upload`, {
                 method: 'POST',
                 body: formData
               });
@@ -208,7 +209,7 @@ export default function ConferenceRoom() {
     // Wait for upload to finish before ending meeting
     await uploadPromise;
     try {
-      await fetch(`https://f9cd-221-132-116-194.ngrok-free.app/api/meetings/${roomId}/end`, {
+      await fetch(`${API_URL}/meetings/${roomId}/end`, {
         method: 'POST'
       });
     } catch (error) {
@@ -225,7 +226,7 @@ export default function ConferenceRoom() {
     const checkSummary = async () => {
       attempts++;
       try {
-        const res = await fetch(`https://f9cd-221-132-116-194.ngrok-free.app/api/insights/${roomId}/view`);
+        const res = await fetch(`${API_URL}/insights/${roomId}/view`);
         if (res.ok) {
           const data = await res.json();
           console.log('[POLL] API response:', data); // DEBUG LOG
@@ -331,7 +332,7 @@ export default function ConferenceRoom() {
     setSummaryError('');
     setSummaryMessage('');
     try {
-      const res = await fetch(`https://f9cd-221-132-116-194.ngrok-free.app/api/insights/${roomId}/view`);
+      const res = await fetch(`${API_URL}/insights/${roomId}/view`);
       if (res.ok) {
         const data = await res.json();
         if (typeof data.summary === 'string' && data.summary.trim().length > 0) {
@@ -403,7 +404,7 @@ export default function ConferenceRoom() {
             {/* TEMP DEBUG BUTTON */}
             <button onClick={async () => {
               try {
-                const res = await fetch(`https://f9cd-221-132-116-194.ngrok-free.app/api/insights/${roomId}/view`);
+                const res = await fetch(`${API_URL}/insights/${roomId}/view`);
                 if (res.ok) {
                   const data = await res.json();
                   console.log('[DEBUG] Manual fetch summary:', data);

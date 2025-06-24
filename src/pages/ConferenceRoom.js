@@ -228,6 +228,7 @@ export default function ConferenceRoom() {
         const res = await fetch(`https://f9cd-221-132-116-194.ngrok-free.app/api/insights/${roomId}/view`);
         if (res.ok) {
           const data = await res.json();
+          console.log('[POLL] API response:', data); // DEBUG LOG
           if (typeof data.summary === 'string' && data.summary.trim().length > 0) {
             setBackgroundSummary(data);
             setBackgroundSummaryReady(true);
@@ -241,7 +242,7 @@ export default function ConferenceRoom() {
           }
         }
       } catch (error) {
-        // Ignore errors
+        console.error('[POLL] Error:', error); // DEBUG LOG
       }
       return false;
     };
@@ -266,6 +267,7 @@ export default function ConferenceRoom() {
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        console.log('[WS] Received:', data); // DEBUG LOG
         if (data.type === 'summary') {
           setBackgroundSummary(data);
           setBackgroundSummaryReady(true);
@@ -274,10 +276,13 @@ export default function ConferenceRoom() {
             setSummary(data);
             setSummaryLoading(false);
             setSummaryGenerated(true);
+            console.log('[WS] Set summary (immediate):', data); // DEBUG LOG
           }
         }
-      } catch (e) {}
+      } catch (e) { console.error('[WS] Error parsing message:', e); }
     };
+    ws.onerror = (e) => { console.error('[WS] Error:', e); };
+    ws.onclose = () => { console.log('[WS] Closed'); };
     return () => ws.close();
   }, [meetingEnded, roomId]);
 

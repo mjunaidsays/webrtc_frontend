@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMeeting } from '../context/MeetingContext';
 import './Summary.css';
@@ -14,6 +14,9 @@ export default function Summary() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [waited, setWaited] = useState(0);
+  const intervalRef = useRef(null);
+  const timeoutRef = useRef(null);
+  const summaryReceivedRef = useRef(false);
 
   // Fallback: try to get user from localStorage if not in context
   if (!user) {
@@ -30,8 +33,6 @@ export default function Summary() {
       navigate('/', { replace: true });
     };
     window.addEventListener('popstate', handlePopState);
-    let interval;
-    let timeout;
     let isMounted = true;
 
     const fetchInsight = async () => {
@@ -39,46 +40,50 @@ export default function Summary() {
         const response = await fetch(`${API_URL}/insights/${meetingId}/view`);
         if (response.ok) {
           const data = await response.json();
-          if (isMounted) {
+          if (isMounted && !summaryReceivedRef.current) {
             setInsight(data);
             if (data.summary || data.message) {
               setLoading(false);
               setError('');
-              clearInterval(interval);
-              clearTimeout(timeout);
+              summaryReceivedRef.current = true;
+              if (intervalRef.current) clearInterval(intervalRef.current);
+              if (timeoutRef.current) clearTimeout(timeoutRef.current);
+              console.log('[POLL] Set summary:', data);
             }
           }
         } else {
-          if (isMounted) {
+          if (isMounted && !summaryReceivedRef.current) {
             setInsight(null);
-            setLoading(true);
+            // Don't set loading to true repeatedly
             setError('');
           }
         }
       } catch (err) {
-        if (isMounted) {
+        if (isMounted && !summaryReceivedRef.current) {
           setInsight(null);
-          setLoading(true);
+          // Don't set loading to true repeatedly
           setError('');
         }
       }
     };
 
     fetchInsight();
-    interval = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       setWaited(w => w + 2);
       fetchInsight();
     }, 2000);
-    timeout = setTimeout(() => {
-      setLoading(false);
-      setError('Summary not available yet. Please wait a moment and refresh.');
-      clearInterval(interval);
+    timeoutRef.current = setTimeout(() => {
+      if (!summaryReceivedRef.current) {
+        setLoading(false);
+        setError('Summary not available yet. Please wait a moment and refresh.');
+        if (intervalRef.current) clearInterval(intervalRef.current);
+      }
     }, MAX_WAIT_SECONDS * 1000);
 
     return () => {
       isMounted = false;
-      clearInterval(interval);
-      clearTimeout(timeout);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
       window.removeEventListener('popstate', handlePopState);
     };
   }, [meetingId, user, navigate]);
@@ -93,6 +98,10 @@ export default function Summary() {
           setInsight(data);
           setLoading(false);
           setError('');
+          summaryReceivedRef.current = true;
+          if (intervalRef.current) clearInterval(intervalRef.current);
+          if (timeoutRef.current) clearTimeout(timeoutRef.current);
+          console.log('[WS] Set summary:', data);
         }
       } catch (e) { console.error('[Summary WS] Error parsing message:', e); }
     };

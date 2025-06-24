@@ -271,8 +271,8 @@ export default function ConferenceRoom() {
         if (data.type === 'summary') {
           setBackgroundSummary(data);
           setBackgroundSummaryReady(true);
-          // If user is waiting for summary, show it immediately
-          if (summaryLoading && !summaryGenerated) {
+          // Always update summary state if summary is ready and user has clicked Generate Summary
+          if (summaryLoading) {
             setSummary(data);
             setSummaryLoading(false);
             setSummaryGenerated(true);
@@ -283,8 +283,9 @@ export default function ConferenceRoom() {
     };
     ws.onerror = (e) => { console.error('[WS] Error:', e); };
     ws.onclose = () => { console.log('[WS] Closed'); };
+    // Only close WebSocket when user leaves the room or navigates away
     return () => ws.close();
-  }, [meetingEnded, roomId]);
+  }, [meetingEnded, roomId, summaryLoading]);
 
   const handleGenerateSummary = () => {
     // Only allow if not already loading or generated
@@ -399,6 +400,23 @@ export default function ConferenceRoom() {
                 <p className="loading-subtext">This may take a minute as we process the audio and generate insights.</p>
               </div>
             )}
+            {/* TEMP DEBUG BUTTON */}
+            <button onClick={async () => {
+              try {
+                const res = await fetch(`https://f9cd-221-132-116-194.ngrok-free.app/api/insights/${roomId}/view`);
+                if (res.ok) {
+                  const data = await res.json();
+                  console.log('[DEBUG] Manual fetch summary:', data);
+                  alert('Fetched summary! Check console.');
+                } else {
+                  console.error('[DEBUG] Fetch failed:', res.status);
+                  alert('Fetch failed: ' + res.status);
+                }
+              } catch (e) {
+                console.error('[DEBUG] Fetch error:', e);
+                alert('Fetch error: ' + e);
+              }
+            }} style={{margin:'1rem',background:'#eee',color:'#333',border:'1px solid #aaa',borderRadius:'8px',padding:'0.5rem 1rem'}}>Test Fetch Summary</button>
             {summaryError && (
               <div className="error-container">
                 <p className="error-message">{summaryError}</p>

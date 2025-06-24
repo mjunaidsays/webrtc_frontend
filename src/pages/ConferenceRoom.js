@@ -235,25 +235,26 @@ export default function ConferenceRoom() {
           console.log('[POLL] Response not OK:', res.status);
           return false;
         }
+        const text = await res.text();
+        let data;
         try {
-          const data = await res.json();
-          console.log('[POLL] API response:', data); // DEBUG LOG
-          if (data.summary_available && typeof data.summary === 'string' && data.summary.trim().length > 0) {
-            setBackgroundSummary(data);
-            setBackgroundSummaryReady(true);
-            found = true;
-            return true;
-          } else if (data.message && !data.summary) {
-            setBackgroundSummaryMessage(data.message);
-            setBackgroundSummaryReady(false);
-            found = false;
-            return false;
-          }
+          data = JSON.parse(text);
         } catch (jsonErr) {
-          const text = await res.text();
           console.error('[POLL] JSON parse error:', jsonErr, '\nResponse text:', text);
           setSummaryError('Error parsing server response.');
           setSummaryLoading(false);
+          return false;
+        }
+        console.log('[POLL] API response:', data); // DEBUG LOG
+        if (data.summary_available && typeof data.summary === 'string' && data.summary.trim().length > 0) {
+          setBackgroundSummary(data);
+          setBackgroundSummaryReady(true);
+          found = true;
+          return true;
+        } else if (data.message && !data.summary) {
+          setBackgroundSummaryMessage(data.message);
+          setBackgroundSummaryReady(false);
+          found = false;
           return false;
         }
       } catch (error) {
@@ -368,22 +369,24 @@ export default function ConferenceRoom() {
         headers: { 'Accept': 'application/json' }
       });
       if (res.ok) {
+        const text = await res.text();
+        let data;
         try {
-          const data = await res.json();
-          if (typeof data.summary === 'string' && data.summary.trim().length > 0) {
-            setSummary(data);
-            setSummaryLoading(false);
-            setSummaryGenerated(true);
-          } else if (data.message && !data.summary) {
-            setSummaryMessage(data.message);
-            setSummaryLoading(false);
-            setSummaryGenerated(false);
-          }
+          data = JSON.parse(text);
         } catch (jsonErr) {
-          const text = await res.text();
           console.error('[POLL] JSON parse error:', jsonErr, '\nResponse text:', text);
           setSummaryError('Error parsing server response.');
           setSummaryLoading(false);
+          return;
+        }
+        if (typeof data.summary === 'string' && data.summary.trim().length > 0) {
+          setSummary(data);
+          setSummaryLoading(false);
+          setSummaryGenerated(true);
+        } else if (data.message && !data.summary) {
+          setSummaryMessage(data.message);
+          setSummaryLoading(false);
+          setSummaryGenerated(false);
         }
       } else {
         setSummaryError('Failed to fetch summary.');

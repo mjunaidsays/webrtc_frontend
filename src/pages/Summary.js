@@ -42,24 +42,26 @@ export default function Summary() {
           headers: { 'Accept': 'application/json' }
         });
         if (response.ok) {
+          const text = await response.text();
+          let data;
           try {
-            const data = await response.json();
-            if (isMounted && !summaryReceivedRef.current) {
-              setInsight(data);
-              if (data.summary || data.message) {
-                setLoading(false);
-                setError('');
-                summaryReceivedRef.current = true;
-                if (intervalRef.current) clearInterval(intervalRef.current);
-                if (timeoutRef.current) clearTimeout(timeoutRef.current);
-                console.log('[POLL] Set summary:', data);
-              }
-            }
+            data = JSON.parse(text);
           } catch (jsonErr) {
-            const text = await response.text();
             console.error('[POLL] JSON parse error:', jsonErr, '\nResponse text:', text);
             setError('Error parsing server response.');
             setLoading(false);
+            return;
+          }
+          if (isMounted && !summaryReceivedRef.current) {
+            setInsight(data);
+            if (data.summary || data.message) {
+              setLoading(false);
+              setError('');
+              summaryReceivedRef.current = true;
+              if (intervalRef.current) clearInterval(intervalRef.current);
+              if (timeoutRef.current) clearTimeout(timeoutRef.current);
+              console.log('[POLL] Set summary:', data);
+            }
           }
         } else {
           if (isMounted && !summaryReceivedRef.current) {

@@ -462,12 +462,22 @@ export default function ConferenceRoom() {
                 alert('Fetch error: ' + e);
               }
             }} style={{margin:'1rem',background:'#eee',color:'#333',border:'1px solid #aaa',borderRadius:'8px',padding:'0.5rem 1rem'}}>Test Fetch Summary</button>
-            {summaryError && (
+            {summaryError && !summaryGenerated && !summaryLoading && (
               <div className="error-container">
                 <p className="error-message">{summaryError}</p>
+                <button onClick={handleRefreshSummary} className="retry-btn">Retry</button>
               </div>
             )}
             {summaryGenerated && summary && !summaryLoading && !summaryError && (
+              <>
+                <p>Your meeting summary is ready!</p>
+                <button onClick={handleViewSummary} className="view-summary-btn">
+                  📋 Show Summary
+                </button>
+              </>
+            )}
+            {/* Always show Show Summary button if backgroundSummaryReady and backgroundSummary are available */}
+            {backgroundSummaryReady && backgroundSummary && !summaryGenerated && !summaryLoading && !summaryError && (
               <>
                 <p>Your meeting summary is ready!</p>
                 <button onClick={handleViewSummary} className="view-summary-btn">

@@ -8,12 +8,17 @@ const MAX_WAIT_SECONDS = 30;
 
 export default function Summary() {
   const { meetingId } = useParams();
-  const { user } = useMeeting();
+  let { user } = useMeeting();
   const navigate = useNavigate();
   const [insight, setInsight] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [waited, setWaited] = useState(0);
+
+  // Fallback: try to get user from localStorage if not in context
+  if (!user) {
+    user = localStorage.getItem('user') || '';
+  }
 
   useEffect(() => {
     if (!user) {

@@ -399,19 +399,11 @@ export default function ConferenceRoom() {
                 <p className="error-message">{summaryError}</p>
               </div>
             )}
-            {summaryGenerated && summary && (
+            {summaryGenerated && summary && !summaryLoading && !summaryError && (
               <>
-                {console.log('Rendering summary:', summary)}
-                <div className="summary-content">
-                  <h4>Summary</h4>
-                  <p>{summary.summary}</p>
-                  <h4>Action Items</h4>
-                  <p>{summary.action_items}</p>
-                  <h4>Key Decisions</h4>
-                  <p>{summary.decisions}</p>
-                </div>
+                <p>Your meeting summary is ready!</p>
                 <button onClick={handleViewSummary} className="view-summary-btn">
-                  📋 View Full Summary
+                  📋 Show Summary
                 </button>
               </>
             )}

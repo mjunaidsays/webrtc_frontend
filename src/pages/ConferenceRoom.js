@@ -279,7 +279,7 @@ export default function ConferenceRoom() {
       } catch (e) {}
     };
     return () => ws.close();
-  }, [meetingEnded, roomId, summaryLoading, summaryGenerated]);
+  }, [meetingEnded, roomId]);
 
   const handleGenerateSummary = () => {
     // Only allow if not already loading or generated

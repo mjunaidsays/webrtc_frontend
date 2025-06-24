@@ -83,6 +83,24 @@ export default function Summary() {
     };
   }, [meetingId, user, navigate]);
 
+  useEffect(() => {
+    if (!meetingId) return;
+    const ws = new window.WebSocket(`wss://f9cd-221-132-116-194.ngrok-free.app/ws/summary/${meetingId}`);
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'summary') {
+          setInsight(data);
+          setLoading(false);
+          setError('');
+        }
+      } catch (e) { console.error('[Summary WS] Error parsing message:', e); }
+    };
+    ws.onerror = (e) => { console.error('[Summary WS] Error:', e); };
+    ws.onclose = () => { console.log('[Summary WS] Closed'); };
+    return () => ws.close();
+  }, [meetingId]);
+
   if (loading) {
     return (
       <div className="summary-container">

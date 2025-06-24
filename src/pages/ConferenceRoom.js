@@ -56,7 +56,7 @@ export default function ConferenceRoom() {
     let script;
     async function createJitsiMeetingWithJWT() {
       // Use a hardcoded JWT for testing
-      const hardcodedJWT = "eyJraWQiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQvZDM3ZmMzLVNBTVBMRV9BUFAiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6ImNoYXQiLCJpYXQiOjE3NTA2ODUzNTUsImV4cCI6MTc1MDY5MjU1NSwibmJmIjoxNzUwNjg1MzUwLCJzdWIiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQiLCJjb250ZXh0Ijp7ImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOnRydWUsIm91dGJvdW5kLWNhbGwiOnRydWUsInNpcC1vdXRib3VuZC1jYWxsIjpmYWxzZSwidHJhbnNjcmlwdGlvbiI6dHJ1ZSwicmVjb3JkaW5nIjp0cnVlLCJmbGlwIjpmYWxzZX0sInVzZXIiOnsiaGlkZGVuLWZyb20tcmVjb3JkZXIiOmZhbHNlLCJtb2RlcmF0b3IiOnRydWUsIm5hbWUiOiJtanVuYWlkMjI4MjAwMSIsImlkIjoiZ29vZ2xlLW9hdXRoMnwxMTAwMTA3OTgwNzY5MDc1MDMxMDYiLCJhdmF0YXIiOiIiLCJlbWFpbCI6Im1qdW5haWQyMjgyMDAxQGdtYWlsLmNvbSJ9fSwicm9vbSI6IioifQ.LmmtTElme5tuSRKfekLE1g2zF5vMwV1zoBv5xacWos7Ii6p71JSYYDOMgaI4_yoKQ0dscaC8-AMU6jSgDZalsp7n3BYsoR24kMNbX4MbONVXUSpX1dzdu4n6feSHBRVr5SYNIT8CByASqGx5ROhKRaXexzKWCvpAkEF5tcobRQYhsliHbQ92yOHujsWF8u6UR13Mu1Xc6F5aEJNai7FO5HcGY8RWst4rD_Qjn0T15Tt9IwsFJOV295uefHzVdM_2CAiev8WtfZz-qimmVMSxEykuTbeDElr9mgI9C-h2EedFm_753FGrdwxKKG2tOtxsIJ-DOfitDBUg3IdvSTxswA";
+      const hardcodedJWT = "eyJraWQiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQvZDM3ZmMzLVNBTVBMRV9BUFAiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6ImNoYXQiLCJpYXQiOjE3NTA3NDIwODIsImV4cCI6MTc1MDc0OTI4MiwibmJmIjoxNzUwNzQyMDc3LCJzdWIiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQiLCJjb250ZXh0Ijp7ImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOnRydWUsIm91dGJvdW5kLWNhbGwiOnRydWUsInNpcC1vdXRib3VuZC1jYWxsIjpmYWxzZSwidHJhbnNjcmlwdGlvbiI6dHJ1ZSwicmVjb3JkaW5nIjp0cnVlLCJmbGlwIjpmYWxzZX0sInVzZXIiOnsiaGlkZGVuLWZyb20tcmVjb3JkZXIiOmZhbHNlLCJtb2RlcmF0b3IiOnRydWUsIm5hbWUiOiJtanVuYWlkMjI4MjAwMSIsImlkIjoiZ29vZ2xlLW9hdXRoMnwxMTAwMTA3OTgwNzY5MDc1MDMxMDYiLCJhdmF0YXIiOiIiLCJlbWFpbCI6Im1qdW5haWQyMjgyMDAxQGdtYWlsLmNvbSJ9fSwicm9vbSI6IioifQ.DBDvEPrG4d20zpYH2qbjhwGnDVYz5zRpUrhVD3WH9i6JntAhpDIeO5BYoddrLi4pkSWYQYXzMLRIhZba3ZokGia4qNM4EEtLDVgatr_rHhHK_hk9_tzi1akkrzm_ccvy_PcLoQimNw4REME5Nm9dTue1PuObxooubkcvO68cvwHeXXx3AdtHVdBtpi8DjG6opHmOogUpFSZlpXltcMKT6dFsuTgVnY8xC7MGHtIuxMAQ-DXLQM-t4gZ92zhtFu2JRIKhXM_X-7JtX_PqazKgNPujjoJDsPMDDfFQKzC_SpGt3vu1FA4hdK8aql6gTCQc_X69tFSqiCtaxqzd3qCVlQ";
       const room = `${JAAS_APP_ID}/${roomId}`;
       if (window.JitsiMeetExternalAPI && jitsiRef.current && !meetingEnded) {
         if (apiRef.current) {
@@ -171,7 +171,7 @@ export default function ConferenceRoom() {
             const formData = new FormData();
             formData.append('audio_file', audioBlob, `${roomId}.webm`);
             try {
-              await fetch(`https://cc19-221-132-116-194.ngrok-free.app/api/transcriptions/${roomId}/upload`, {
+              await fetch(`https://f9cd-221-132-116-194.ngrok-free.app/api/transcriptions/${roomId}/upload`, {
                 method: 'POST',
                 body: formData
               });
@@ -205,7 +205,7 @@ export default function ConferenceRoom() {
     // Wait for upload to finish before ending meeting
     await uploadPromise;
     try {
-      await fetch(`https://cc19-221-132-116-194.ngrok-free.app/api/meetings/${roomId}/end`, {
+      await fetch(`https://f9cd-221-132-116-194.ngrok-free.app/api/meetings/${roomId}/end`, {
         method: 'POST'
       });
     } catch (error) {
@@ -223,7 +223,7 @@ export default function ConferenceRoom() {
     const checkSummary = async () => {
       attempts++;
       try {
-        const res = await fetch(`https://cc19-221-132-116-194.ngrok-free.app/api/insights/${roomId}/view`);
+        const res = await fetch(`https://f9cd-221-132-116-194.ngrok-free.app/api/insights/${roomId}/view`);
         if (res.ok) {
           const data = await res.json();
           console.log('Summary API response:', data);

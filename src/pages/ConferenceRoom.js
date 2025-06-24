@@ -5,8 +5,8 @@ import './ConferenceRoom.css';
 
 const JITSI_DOMAIN = '8x8.vc';
 const JAAS_APP_ID = 'vpaas-magic-cookie-4d98055dcb7a4e7e818e22aa1b84781d';
-const API_URL = 'https://3416-221-132-116-194.ngrok-free.app/api';
-const WS_URL = 'wss://3416-221-132-116-194.ngrok-free.app/ws';
+const API_URL = 'https://fbd7-221-132-116-194.ngrok-free.app/api';
+const WS_URL = 'wss://fbd7-221-132-116-194.ngrok-free.app/ws';
 
 export default function ConferenceRoom() {
   const { user } = useMeeting();

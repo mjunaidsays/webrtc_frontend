@@ -4,7 +4,7 @@ import { useMeeting } from '../context/MeetingContext';
 import './Home.css';
 import logo from '../logo.svg';
 
-const API_URL = 'https://3416-221-132-116-194.ngrok-free.app/api/meetings';
+const API_URL = 'https://3416-221-132-116-194.ngrok-free.app/api';
 
 export default function Home() {
   const { setUser, setRoom, setMeeting } = useMeeting();
@@ -23,7 +23,7 @@ export default function Home() {
     setUser(name);
     setRoom(roomCode);
     try {
-      const res = await fetch(`${API_URL}/${roomCode}/join`, {
+      const res = await fetch(`${API_URL}/meetings/${roomCode}/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_name: name })
@@ -45,7 +45,7 @@ export default function Home() {
     if (!name || !title) return setError('Enter your name and meeting title.');
     setUser(name);
     try {
-      const res = await fetch(`${API_URL}/create?title=${encodeURIComponent(title)}&owner_name=${encodeURIComponent(name)}`, {
+      const res = await fetch(`${API_URL}/meetings/create?title=${encodeURIComponent(title)}&owner_name=${encodeURIComponent(name)}`, {
         method: 'POST'
       });
       if (!res.ok) throw new Error('Failed to create room.');

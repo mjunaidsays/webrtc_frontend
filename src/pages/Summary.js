@@ -4,6 +4,7 @@ import { useMeeting } from '../context/MeetingContext';
 import './Summary.css';
 
 const API_URL = 'https://3416-221-132-116-194.ngrok-free.app/api';
+const WS_URL = 'wss://3416-221-132-116-194.ngrok-free.app/ws';
 const MAX_WAIT_SECONDS = 30;
 
 export default function Summary() {
@@ -90,7 +91,7 @@ export default function Summary() {
 
   useEffect(() => {
     if (!meetingId) return;
-    const ws = new window.WebSocket(`wss://3416-221-132-116-194.ngrok-free.app/ws/summary/${meetingId}`);
+    const ws = new window.WebSocket(`${WS_URL}/summary/${meetingId}`);
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);

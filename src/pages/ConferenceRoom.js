@@ -62,7 +62,7 @@ export default function ConferenceRoom() {
     let script;
     async function createJitsiMeetingWithJWT() {
       // Use a hardcoded JWT for testing
-      const hardcodedJWT = "eyJraWQiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQvZDM3ZmMzLVNBTVBMRV9BUFAiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6ImNoYXQiLCJpYXQiOjE3NTA3NTE3OTYsImV4cCI6MTc1MDc1ODk5NiwibmJmIjoxNzUwNzUxNzkxLCJzdWIiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQiLCJjb250ZXh0Ijp7ImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOnRydWUsIm91dGJvdW5kLWNhbGwiOnRydWUsInNpcC1vdXRib3VuZC1jYWxsIjpmYWxzZSwidHJhbnNjcmlwdGlvbiI6dHJ1ZSwicmVjb3JkaW5nIjp0cnVlLCJmbGlwIjpmYWxzZX0sInVzZXIiOnsiaGlkZGVuLWZyb20tcmVjb3JkZXIiOmZhbHNlLCJtb2RlcmF0b3IiOnRydWUsIm5hbWUiOiJtanVuYWlkMjI4MjAwMSIsImlkIjoiZ29vZ2xlLW9hdXRoMnwxMTAwMTA3OTgwNzY5MDc1MDMxMDYiLCJhdmF0YXIiOiIiLCJlbWFpbCI6Im1qdW5haWQyMjgyMDAxQGdtYWlsLmNvbSJ9fSwicm9vbSI6IioifQ.OKJdqAepBiGJXKt2uQLirayV67iZVPO5o67zf440iZgHHeP2DbPhL61sB2fDkWh615GpSx4_rhZe0tklgtP8JansR0lw9V9_S96lPpX24ZCogjp9eP8_Bj8WwgJSPWGU4u_Br3hnb-_RZ9ei1-eBsMkXlaHvUHFcKLnlsIfYpHO1pJIBqNwD0KqerXLFxTRXXLMT_Iyn8tylhsIrAQHBPrnLE2dxl6VEww8GES_xtE5LDPmrP3DSoOCk_pjMKy1iAD_PIK9Mm4_CHibuQhlNuX4IbC3GV-_IhSJ_BIFs0t26kYH_S4grUqt9e-AW2vO80QJMOint73HE4DJ-LPpRew";
+      const hardcodedJWT = "eyJraWQiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQvZDM3ZmMzLVNBTVBMRV9BUFAiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6ImNoYXQiLCJpYXQiOjE3NTA3NTkyODgsImV4cCI6MTc1MDc2NjQ4OCwibmJmIjoxNzUwNzU5MjgzLCJzdWIiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQiLCJjb250ZXh0Ijp7ImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOnRydWUsIm91dGJvdW5kLWNhbGwiOnRydWUsInNpcC1vdXRib3VuZC1jYWxsIjpmYWxzZSwidHJhbnNjcmlwdGlvbiI6dHJ1ZSwicmVjb3JkaW5nIjp0cnVlLCJmbGlwIjpmYWxzZX0sInVzZXIiOnsiaGlkZGVuLWZyb20tcmVjb3JkZXIiOmZhbHNlLCJtb2RlcmF0b3IiOnRydWUsIm5hbWUiOiJtanVuYWlkMjI4MjAwMSIsImlkIjoiZ29vZ2xlLW9hdXRoMnwxMTAwMTA3OTgwNzY5MDc1MDMxMDYiLCJhdmF0YXIiOiIiLCJlbWFpbCI6Im1qdW5haWQyMjgyMDAxQGdtYWlsLmNvbSJ9fSwicm9vbSI6IioifQ.fxQoF20LSoee1dIey98xi0LN0gxlGf4P9SI_4ZhyvfEIHj4-IDcXfASgsAWbLgdusHUNrWSg7jNj_iysayZ9abMgKiam-VsQfbMt__jGxDQRbNR0X5Vxxzb1nSFdFIRiVhLkjrIyR9a5YAsrByFtNZpMuJmp-15gscTHqbwIoVovfEdIlvS4HjvKqPXAMfwhdSflzW-6JLCN7NwR_TJrA2lwKhLFt4RrWJdljhVW2lV7zJNjRcPnV7TdU4RUusTCut-hiuj84FtB7iq__gCUoiWc4tosl-Cd-RwXCtYZqH3j3jn-xqVw8ygEPwH6GWKK8sXQzXB29DB-wuJSY0BY4Q";
       const room = `${JAAS_APP_ID}/${roomId}`;
       if (window.JitsiMeetExternalAPI && jitsiRef.current && !meetingEnded) {
         if (apiRef.current) {
@@ -228,23 +228,32 @@ export default function ConferenceRoom() {
     const checkSummary = async () => {
       attempts++;
       try {
-        const res = await fetch(`${API_URL}/insights/${roomId}/view`);
+        const res = await fetch(`${API_URL}/insights/${roomId}/view`, {
+          headers: { 'Accept': 'application/json' }
+        });
         if (!res.ok) {
           console.log('[POLL] Response not OK:', res.status);
           return false;
         }
-        const data = await res.json();
-        console.log('[POLL] API response:', data); // DEBUG LOG
-        
-        if (data.summary_available && typeof data.summary === 'string' && data.summary.trim().length > 0) {
-          setBackgroundSummary(data);
-          setBackgroundSummaryReady(true);
-          found = true;
-          return true;
-        } else if (data.message && !data.summary) {
-          setBackgroundSummaryMessage(data.message);
-          setBackgroundSummaryReady(false);
-          found = false;
+        try {
+          const data = await res.json();
+          console.log('[POLL] API response:', data); // DEBUG LOG
+          if (data.summary_available && typeof data.summary === 'string' && data.summary.trim().length > 0) {
+            setBackgroundSummary(data);
+            setBackgroundSummaryReady(true);
+            found = true;
+            return true;
+          } else if (data.message && !data.summary) {
+            setBackgroundSummaryMessage(data.message);
+            setBackgroundSummaryReady(false);
+            found = false;
+            return false;
+          }
+        } catch (jsonErr) {
+          const text = await res.text();
+          console.error('[POLL] JSON parse error:', jsonErr, '\nResponse text:', text);
+          setSummaryError('Error parsing server response.');
+          setSummaryLoading(false);
           return false;
         }
       } catch (error) {
@@ -355,17 +364,26 @@ export default function ConferenceRoom() {
     setSummaryError('');
     setSummaryMessage('');
     try {
-      const res = await fetch(`${API_URL}/insights/${roomId}/view`);
+      const res = await fetch(`${API_URL}/insights/${roomId}/view`, {
+        headers: { 'Accept': 'application/json' }
+      });
       if (res.ok) {
-        const data = await res.json();
-        if (typeof data.summary === 'string' && data.summary.trim().length > 0) {
-          setSummary(data);
+        try {
+          const data = await res.json();
+          if (typeof data.summary === 'string' && data.summary.trim().length > 0) {
+            setSummary(data);
+            setSummaryLoading(false);
+            setSummaryGenerated(true);
+          } else if (data.message && !data.summary) {
+            setSummaryMessage(data.message);
+            setSummaryLoading(false);
+            setSummaryGenerated(false);
+          }
+        } catch (jsonErr) {
+          const text = await res.text();
+          console.error('[POLL] JSON parse error:', jsonErr, '\nResponse text:', text);
+          setSummaryError('Error parsing server response.');
           setSummaryLoading(false);
-          setSummaryGenerated(true);
-        } else if (data.message && !data.summary) {
-          setSummaryMessage(data.message);
-          setSummaryLoading(false);
-          setSummaryGenerated(false);
         }
       } else {
         setSummaryError('Failed to fetch summary.');

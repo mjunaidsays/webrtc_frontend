@@ -38,31 +38,38 @@ export default function Summary() {
 
     const fetchInsight = async () => {
       try {
-        const response = await fetch(`${API_URL}/insights/${meetingId}/view`);
+        const response = await fetch(`${API_URL}/insights/${meetingId}/view`, {
+          headers: { 'Accept': 'application/json' }
+        });
         if (response.ok) {
-          const data = await response.json();
-          if (isMounted && !summaryReceivedRef.current) {
-            setInsight(data);
-            if (data.summary || data.message) {
-              setLoading(false);
-              setError('');
-              summaryReceivedRef.current = true;
-              if (intervalRef.current) clearInterval(intervalRef.current);
-              if (timeoutRef.current) clearTimeout(timeoutRef.current);
-              console.log('[POLL] Set summary:', data);
+          try {
+            const data = await response.json();
+            if (isMounted && !summaryReceivedRef.current) {
+              setInsight(data);
+              if (data.summary || data.message) {
+                setLoading(false);
+                setError('');
+                summaryReceivedRef.current = true;
+                if (intervalRef.current) clearInterval(intervalRef.current);
+                if (timeoutRef.current) clearTimeout(timeoutRef.current);
+                console.log('[POLL] Set summary:', data);
+              }
             }
+          } catch (jsonErr) {
+            const text = await response.text();
+            console.error('[POLL] JSON parse error:', jsonErr, '\nResponse text:', text);
+            setError('Error parsing server response.');
+            setLoading(false);
           }
         } else {
           if (isMounted && !summaryReceivedRef.current) {
             setInsight(null);
-            // Don't set loading to true repeatedly
             setError('');
           }
         }
       } catch (err) {
         if (isMounted && !summaryReceivedRef.current) {
           setInsight(null);
-          // Don't set loading to true repeatedly
           setError('');
         }
       }

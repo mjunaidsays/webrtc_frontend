@@ -224,68 +224,90 @@ export default function ConferenceRoom() {
     let attempts = 0;
     const maxAttempts = 90;
     let found = false;
+
     const checkSummary = async () => {
       attempts++;
       try {
         const res = await fetch(`${API_URL}/insights/${roomId}/view`);
-        if (res.ok) {
-          const data = await res.json();
-          console.log('[POLL] API response:', data); // DEBUG LOG
-          if (typeof data.summary === 'string' && data.summary.trim().length > 0) {
-            setBackgroundSummary(data);
-            setBackgroundSummaryReady(true);
-            found = true;
-            return true;
-          } else if (data.message && !data.summary) {
-            setBackgroundSummaryMessage(data.message);
-            setBackgroundSummaryReady(false);
-            found = false;
-            return false;
-          }
+        if (!res.ok) {
+          console.log('[POLL] Response not OK:', res.status);
+          return false;
+        }
+        const data = await res.json();
+        console.log('[POLL] API response:', data); // DEBUG LOG
+        
+        if (data.summary_available && typeof data.summary === 'string' && data.summary.trim().length > 0) {
+          setBackgroundSummary(data);
+          setBackgroundSummaryReady(true);
+          found = true;
+          return true;
+        } else if (data.message && !data.summary) {
+          setBackgroundSummaryMessage(data.message);
+          setBackgroundSummaryReady(false);
+          found = false;
+          return false;
         }
       } catch (error) {
         console.error('[POLL] Error:', error); // DEBUG LOG
+        return false;
       }
       return false;
     };
+
     // First, check immediately
     checkSummary();
-    backgroundPollingRef.current = setInterval(async () => {
-      if (await checkSummary()) {
+
+    // Only start polling if we haven't found the summary yet
+    if (!found) {
+      backgroundPollingRef.current = setInterval(async () => {
+        if (await checkSummary() || attempts >= maxAttempts) {
+          clearInterval(backgroundPollingRef.current);
+        }
+      }, 2000);
+    }
+
+    return () => {
+      if (backgroundPollingRef.current) {
         clearInterval(backgroundPollingRef.current);
-        return;
       }
-      if (attempts >= maxAttempts) {
-        clearInterval(backgroundPollingRef.current);
-      }
-    }, 2000);
-    return () => clearInterval(backgroundPollingRef.current);
+    };
   }, [meetingEnded, roomId]);
 
   // Add WebSocket for real-time summary updates
   useEffect(() => {
     if (!meetingEnded) return;
     const ws = new window.WebSocket(`${WS_URL}/summary/${roomId}`);
+    
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
         console.log('[WS] Received:', data); // DEBUG LOG
-        if (data.type === 'summary') {
+        
+        if (data.type === 'summary' && data.summary_available) {
+          // Stop polling when we get a summary via WebSocket
+          if (backgroundPollingRef.current) {
+            clearInterval(backgroundPollingRef.current);
+          }
+          
           setBackgroundSummary(data);
           setBackgroundSummaryReady(true);
-          // Always update summary state if summary is ready and user has clicked Generate Summary
+          
+          // Update summary state if we're waiting for it
           if (summaryLoading) {
             setSummary(data);
             setSummaryLoading(false);
             setSummaryGenerated(true);
-            console.log('[WS] Set summary (immediate):', data); // DEBUG LOG
+            console.log('[WS] Set summary (immediate):', data);
           }
         }
-      } catch (e) { console.error('[WS] Error parsing message:', e); }
+      } catch (e) {
+        console.error('[WS] Error parsing message:', e);
+      }
     };
-    ws.onerror = (e) => { console.error('[WS] Error:', e); };
-    ws.onclose = () => { console.log('[WS] Closed'); };
-    // Only close WebSocket when user leaves the room or navigates away
+    
+    ws.onerror = (e) => console.error('[WS] Error:', e);
+    ws.onclose = () => console.log('[WS] Closed');
+    
     return () => ws.close();
   }, [meetingEnded, roomId, summaryLoading]);
 

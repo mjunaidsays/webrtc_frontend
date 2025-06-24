@@ -19,8 +19,12 @@ export default function ConferenceRoom() {
   const [summaryGenerated, setSummaryGenerated] = useState(false);
   const [summaryError, setSummaryError] = useState('');
   const [summaryMessage, setSummaryMessage] = useState('');
+  const [backgroundSummary, setBackgroundSummary] = useState(null);
+  const [backgroundSummaryReady, setBackgroundSummaryReady] = useState(false);
+  const [backgroundSummaryMessage, setBackgroundSummaryMessage] = useState('');
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const backgroundPollingRef = useRef(null);
 
   // Remove Jitsi iframe only when meeting has ended
   const removeJitsiIframe = () => {
@@ -56,7 +60,7 @@ export default function ConferenceRoom() {
     let script;
     async function createJitsiMeetingWithJWT() {
       // Use a hardcoded JWT for testing
-      const hardcodedJWT = "eyJraWQiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQvZDM3ZmMzLVNBTVBMRV9BUFAiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6ImNoYXQiLCJpYXQiOjE3NTA3NDIwODIsImV4cCI6MTc1MDc0OTI4MiwibmJmIjoxNzUwNzQyMDc3LCJzdWIiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQiLCJjb250ZXh0Ijp7ImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOnRydWUsIm91dGJvdW5kLWNhbGwiOnRydWUsInNpcC1vdXRib3VuZC1jYWxsIjpmYWxzZSwidHJhbnNjcmlwdGlvbiI6dHJ1ZSwicmVjb3JkaW5nIjp0cnVlLCJmbGlwIjpmYWxzZX0sInVzZXIiOnsiaGlkZGVuLWZyb20tcmVjb3JkZXIiOmZhbHNlLCJtb2RlcmF0b3IiOnRydWUsIm5hbWUiOiJtanVuYWlkMjI4MjAwMSIsImlkIjoiZ29vZ2xlLW9hdXRoMnwxMTAwMTA3OTgwNzY5MDc1MDMxMDYiLCJhdmF0YXIiOiIiLCJlbWFpbCI6Im1qdW5haWQyMjgyMDAxQGdtYWlsLmNvbSJ9fSwicm9vbSI6IioifQ.DBDvEPrG4d20zpYH2qbjhwGnDVYz5zRpUrhVD3WH9i6JntAhpDIeO5BYoddrLi4pkSWYQYXzMLRIhZba3ZokGia4qNM4EEtLDVgatr_rHhHK_hk9_tzi1akkrzm_ccvy_PcLoQimNw4REME5Nm9dTue1PuObxooubkcvO68cvwHeXXx3AdtHVdBtpi8DjG6opHmOogUpFSZlpXltcMKT6dFsuTgVnY8xC7MGHtIuxMAQ-DXLQM-t4gZ92zhtFu2JRIKhXM_X-7JtX_PqazKgNPujjoJDsPMDDfFQKzC_SpGt3vu1FA4hdK8aql6gTCQc_X69tFSqiCtaxqzd3qCVlQ";
+      const hardcodedJWT = "eyJraWQiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQvZDM3ZmMzLVNBTVBMRV9BUFAiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6ImNoYXQiLCJpYXQiOjE3NTA3NDU3NDEsImV4cCI6MTc1MDc1Mjk0MSwibmJmIjoxNzUwNzQ1NzM2LCJzdWIiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQiLCJjb250ZXh0Ijp7ImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOnRydWUsIm91dGJvdW5kLWNhbGwiOnRydWUsInNpcC1vdXRib3VuZC1jYWxsIjpmYWxzZSwidHJhbnNjcmlwdGlvbiI6dHJ1ZSwicmVjb3JkaW5nIjp0cnVlLCJmbGlwIjpmYWxzZX0sInVzZXIiOnsiaGlkZGVuLWZyb20tcmVjb3JkZXIiOmZhbHNlLCJtb2RlcmF0b3IiOnRydWUsIm5hbWUiOiJtanVuYWlkMjI4MjAwMSIsImlkIjoiZ29vZ2xlLW9hdXRoMnwxMTAwMTA3OTgwNzY5MDc1MDMxMDYiLCJhdmF0YXIiOiIiLCJlbWFpbCI6Im1qdW5haWQyMjgyMDAxQGdtYWlsLmNvbSJ9fSwicm9vbSI6IioifQ.nKrxToyc1AmQ-cjTCZVDDGAUotd3LPUd_30GEb7OpDV0xOrxl6Hee9R7RwLW0Y7trp-5Y7XBrlycFeTf9SVkH4NfNe67P1Fqh5RzxHuYDu8mzlIe8a_mP4k7x7J6KD2lxLTxZUUT4gaj3B9vgunJHUJA1HGExxB0cIPDEEU9INDf0NcW4qb47L9ib_C7lO7KP8bGEjnfhPvhauN3MgniWbG1pw-leeIJhgTU8-FXP9C2mgFTGDxh-LvnY-e-NWbbY61v8gx5HDQWME9sXenP7LolCdE5BQwjEK1R7JuYqQHSvnrA25JDL9qG_RtmPnmLNKfa3s3SaSlBzlrWqodPNg";
       const room = `${JAAS_APP_ID}/${roomId}`;
       if (window.JitsiMeetExternalAPI && jitsiRef.current && !meetingEnded) {
         if (apiRef.current) {
@@ -212,12 +216,11 @@ export default function ConferenceRoom() {
     }
   };
 
-  const pollForSummary = async () => {
-    setSummaryLoading(true);
-    setSummaryError('');
-    setSummaryMessage('');
+  // Background polling for summary after meeting ends
+  useEffect(() => {
+    if (!meetingEnded) return;
     let attempts = 0;
-    const maxAttempts = 90; // 90 x 2s = 180s (3 minutes)
+    const maxAttempts = 90;
     let found = false;
     const checkSummary = async () => {
       attempts++;
@@ -225,46 +228,63 @@ export default function ConferenceRoom() {
         const res = await fetch(`https://f9cd-221-132-116-194.ngrok-free.app/api/insights/${roomId}/view`);
         if (res.ok) {
           const data = await res.json();
-          console.log('Summary API response:', data);
           if (typeof data.summary === 'string' && data.summary.trim().length > 0) {
-            setSummary(data);
-            setSummaryLoading(false);
-            setSummaryGenerated(true);
+            setBackgroundSummary(data);
+            setBackgroundSummaryReady(true);
             found = true;
             return true;
           } else if (data.message && !data.summary) {
-            // If backend says summary is being generated, keep polling
-            setSummaryMessage(data.message);
-            setSummaryLoading(true);
-            setSummaryGenerated(false);
+            setBackgroundSummaryMessage(data.message);
+            setBackgroundSummaryReady(false);
             found = false;
             return false;
           }
         }
       } catch (error) {
-        // Ignore errors, keep polling
+        // Ignore errors
       }
       return false;
     };
-    // First, check immediately (for retry case)
-    if (await checkSummary()) return;
-    const interval = setInterval(async () => {
+    // First, check immediately
+    checkSummary();
+    backgroundPollingRef.current = setInterval(async () => {
       if (await checkSummary()) {
-        clearInterval(interval);
+        clearInterval(backgroundPollingRef.current);
         return;
       }
       if (attempts >= maxAttempts) {
-        setSummaryLoading(false);
-        setSummaryError('This meeting does not have any summary.');
-        clearInterval(interval);
+        clearInterval(backgroundPollingRef.current);
       }
     }, 2000);
-  };
+    return () => clearInterval(backgroundPollingRef.current);
+  }, [meetingEnded, roomId]);
 
   const handleGenerateSummary = () => {
     // Only allow if not already loading or generated
     if (!summaryLoading && !summaryGenerated) {
-      pollForSummary();
+      setSummaryLoading(true);
+      setSummaryError('');
+      setSummaryMessage('');
+      // If background summary is ready, show it immediately
+      if (backgroundSummaryReady && backgroundSummary) {
+        setSummary(backgroundSummary);
+        setSummaryLoading(false);
+        setSummaryGenerated(true);
+        console.log('Summary set (immediate):', backgroundSummary);
+      } else {
+        // Otherwise, show loading and wait for background to finish
+        const waitForSummary = setInterval(() => {
+          if (backgroundSummaryReady && backgroundSummary) {
+            setSummary(backgroundSummary);
+            setSummaryLoading(false);
+            setSummaryGenerated(true);
+            clearInterval(waitForSummary);
+            console.log('Summary set (delayed):', backgroundSummary);
+          } else if (backgroundSummaryMessage) {
+            setSummaryMessage(backgroundSummaryMessage);
+          }
+        }, 1000);
+      }
     }
   };
 
@@ -331,6 +351,7 @@ export default function ConferenceRoom() {
             )}
             {summaryGenerated && summary && (
               <>
+                {console.log('Rendering summary:', summary)}
                 <div className="summary-content">
                   <h4>Summary</h4>
                   <p>{summary.summary}</p>

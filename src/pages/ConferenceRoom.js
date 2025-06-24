@@ -259,6 +259,28 @@ export default function ConferenceRoom() {
     return () => clearInterval(backgroundPollingRef.current);
   }, [meetingEnded, roomId]);
 
+  // Add WebSocket for real-time summary updates
+  useEffect(() => {
+    if (!meetingEnded) return;
+    const ws = new window.WebSocket(`wss://f9cd-221-132-116-194.ngrok-free.app/ws/summary/${roomId}`);
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'summary') {
+          setBackgroundSummary(data);
+          setBackgroundSummaryReady(true);
+          // If user is waiting for summary, show it immediately
+          if (summaryLoading && !summaryGenerated) {
+            setSummary(data);
+            setSummaryLoading(false);
+            setSummaryGenerated(true);
+          }
+        }
+      } catch (e) {}
+    };
+    return () => ws.close();
+  }, [meetingEnded, roomId, summaryLoading, summaryGenerated]);
+
   const handleGenerateSummary = () => {
     // Only allow if not already loading or generated
     if (!summaryLoading && !summaryGenerated) {
@@ -295,6 +317,34 @@ export default function ConferenceRoom() {
   const handleLeaveRoom = () => {
     if (meetingEnded) removeJitsiIframe();
     navigate('/');
+  };
+
+  // Add a function to refresh the summary from the backend
+  const handleRefreshSummary = async () => {
+    setSummaryLoading(true);
+    setSummaryError('');
+    setSummaryMessage('');
+    try {
+      const res = await fetch(`https://f9cd-221-132-116-194.ngrok-free.app/api/insights/${roomId}/view`);
+      if (res.ok) {
+        const data = await res.json();
+        if (typeof data.summary === 'string' && data.summary.trim().length > 0) {
+          setSummary(data);
+          setSummaryLoading(false);
+          setSummaryGenerated(true);
+        } else if (data.message && !data.summary) {
+          setSummaryMessage(data.message);
+          setSummaryLoading(false);
+          setSummaryGenerated(false);
+        }
+      } else {
+        setSummaryError('Failed to fetch summary.');
+        setSummaryLoading(false);
+      }
+    } catch (error) {
+      setSummaryError('Error fetching summary.');
+      setSummaryLoading(false);
+    }
   };
 
   if (!user || !roomId) return null;

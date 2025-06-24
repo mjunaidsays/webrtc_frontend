@@ -98,11 +98,10 @@ export default function ConferenceRoom() {
           setIsCallActive(true);
         });
         apiRef.current.addListener('participantLeft', () => {
-          apiRef.current.getNumberOfParticipants().then((count) => {
-            if (count <= 1) {
-              setIsCallActive(false);
-            }
-          });
+          const count = apiRef.current.getNumberOfParticipants();
+          if (count <= 1) {
+            setIsCallActive(false);
+          }
         });
         apiRef.current.addListener('videoConferenceJoined', () => {
           setIsCallActive(true);

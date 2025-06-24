@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useMeeting } from '../context/MeetingContext';
 import './Summary.css';
 
-const API_URL = 'https://f9cd-221-132-116-194.ngrok-free.app/api';
+const API_URL = 'https://3416-221-132-116-194.ngrok-free.app/api';
 const MAX_WAIT_SECONDS = 30;
 
 export default function Summary() {
@@ -90,7 +90,7 @@ export default function Summary() {
 
   useEffect(() => {
     if (!meetingId) return;
-    const ws = new window.WebSocket(`wss://f9cd-221-132-116-194.ngrok-free.app/ws/summary/${meetingId}`);
+    const ws = new window.WebSocket(`wss://3416-221-132-116-194.ngrok-free.app/ws/summary/${meetingId}`);
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);

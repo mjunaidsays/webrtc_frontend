@@ -5,7 +5,7 @@ import './ConferenceRoom.css';
 
 const JITSI_DOMAIN = '8x8.vc';
 const JAAS_APP_ID = 'vpaas-magic-cookie-4d98055dcb7a4e7e818e22aa1b84781d';
-const API_URL = 'https://f9cd-221-132-116-194.ngrok-free.app/api';
+const API_URL = 'https://3416-221-132-116-194.ngrok-free.app/api';
 
 export default function ConferenceRoom() {
   const { user } = useMeeting();
@@ -264,7 +264,7 @@ export default function ConferenceRoom() {
   // Add WebSocket for real-time summary updates
   useEffect(() => {
     if (!meetingEnded) return;
-    const ws = new window.WebSocket(`wss://f9cd-221-132-116-194.ngrok-free.app/ws/summary/${roomId}`);
+    const ws = new window.WebSocket(`wss://3416-221-132-116-194.ngrok-free.app/ws/summary/${roomId}`);
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);

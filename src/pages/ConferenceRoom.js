@@ -174,18 +174,34 @@ export default function ConferenceRoom() {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       uploadPromise = new Promise((resolve) => {
         mediaRecorderRef.current.onstop = async () => {
+          // Log audio chunks for debugging
+          console.log('Audio chunks:', audioChunksRef.current.length, audioChunksRef.current);
           if (audioChunksRef.current.length > 0) {
+            // Calculate total size
+            let totalSize = 0;
+            audioChunksRef.current.forEach(chunk => totalSize += chunk.size);
+            console.log('Total audio size (bytes):', totalSize);
             const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
             const formData = new FormData();
             formData.append('audio_file', audioBlob, `${roomId}.webm`);
             try {
-              await fetch(`${API_URL}/transcriptions/${roomId}/upload`, {
+              const uploadRes = await fetch(`${API_URL}/transcriptions/${roomId}/upload`, {
                 method: 'POST',
                 body: formData
               });
+              const uploadText = await uploadRes.text();
+              console.log('Audio upload response:', uploadRes.status, uploadText);
+              if (!uploadRes.ok) {
+                alert('Audio upload failed. Please check your connection and try again.');
+              }
             } catch (err) {
               console.error('Failed to upload audio:', err);
+              alert('Audio upload failed. Please check your connection and try again.');
             }
+          } else {
+            // No audio was recorded
+            console.warn('No audio was recorded.');
+            alert('No audio was recorded. Please check your microphone and browser permissions.');
           }
           resolve();
         };

@@ -2,11 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMeeting } from '../context/MeetingContext';
 import './ConferenceRoom.css';
+import { endpoints } from '../api';
 
 const JITSI_DOMAIN = '8x8.vc';
 const JAAS_APP_ID = 'vpaas-magic-cookie-4d98055dcb7a4e7e818e22aa1b84781d';
-const API_URL = 'https://f4b7-221-132-116-194.ngrok-free.app/api';
-const WS_URL = 'wss://f4b7-221-132-116-194.ngrok-free.app/ws';
 
 export default function ConferenceRoom() {
   const { user } = useMeeting();
@@ -185,7 +184,7 @@ export default function ConferenceRoom() {
             const formData = new FormData();
             formData.append('audio_file', audioBlob, `${roomId}.webm`);
             try {
-              const uploadRes = await fetch(`${API_URL}/transcriptions/${roomId}/upload`, {
+              const uploadRes = await fetch(endpoints.uploadAudio(roomId), {
                 method: 'POST',
                 body: formData
               });
@@ -229,7 +228,7 @@ export default function ConferenceRoom() {
     // Wait for upload to finish before ending meeting
     await uploadPromise;
     try {
-      await fetch(`${API_URL}/meetings/${roomId}/end`, {
+      await fetch(endpoints.endMeeting(roomId), {
         method: 'POST'
       });
     } catch (error) {
@@ -247,7 +246,7 @@ export default function ConferenceRoom() {
     const checkSummary = async () => {
       attempts++;
       try {
-        const res = await fetch(`${API_URL}/insights/${roomId}/view`, {
+        const res = await fetch(endpoints.getSummary(roomId), {
           headers: {
             'Accept': 'application/json',
             'ngrok-skip-browser-warning': 'true'
@@ -308,7 +307,7 @@ export default function ConferenceRoom() {
   // Add WebSocket for real-time summary updates
   useEffect(() => {
     if (!meetingEnded) return;
-    const ws = new window.WebSocket(`${WS_URL}/summary/${roomId}`);
+    const ws = new window.WebSocket(endpoints.wsSummary(roomId));
     
     ws.onmessage = (event) => {
       try {
@@ -354,7 +353,7 @@ export default function ConferenceRoom() {
       const poll = async () => {
         attempts++;
         try {
-          const res = await fetch(`${API_URL}/insights/${roomId}/view`, {
+          const res = await fetch(endpoints.getSummary(roomId), {
             headers: {
               'Accept': 'application/json',
               'ngrok-skip-browser-warning': 'true'
@@ -428,7 +427,7 @@ export default function ConferenceRoom() {
     setSummaryError('');
     setSummaryMessage('');
     try {
-      const res = await fetch(`${API_URL}/insights/${roomId}/view`, {
+      const res = await fetch(endpoints.getSummary(roomId), {
         headers: {
           'Accept': 'application/json',
           'ngrok-skip-browser-warning': 'true'

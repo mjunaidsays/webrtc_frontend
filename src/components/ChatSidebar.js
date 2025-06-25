@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useMeeting } from '../context/MeetingContext';
 import './ChatSidebar.css';
-
-const WS_URL = 'wss://f4b7-221-132-116-194.ngrok-free.app/ws/chat/';
+import { endpoints } from '../api';
 
 export default function ChatSidebar() {
   const { user, room } = useMeeting();
@@ -13,7 +12,7 @@ export default function ChatSidebar() {
 
   useEffect(() => {
     if (!room) return;
-    ws.current = new window.WebSocket(`${WS_URL}${room}`);
+    ws.current = new window.WebSocket(endpoints.wsChat(room));
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === 'chat') {

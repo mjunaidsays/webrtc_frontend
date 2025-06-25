@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMeeting } from '../context/MeetingContext';
 import './Home.css';
 import logo from '../logo.svg';
-
-const API_URL = 'https://f4b7-221-132-116-194.ngrok-free.app/api';
+import { endpoints } from '../api';
 
 export default function Home() {
   const { setUser, setRoom, setMeeting } = useMeeting();
@@ -23,7 +22,7 @@ export default function Home() {
     setUser(name);
     setRoom(roomCode);
     try {
-      const res = await fetch(`${API_URL}/meetings/${roomCode}/join`, {
+      const res = await fetch(endpoints.joinMeeting(roomCode), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_name: name })
@@ -45,7 +44,7 @@ export default function Home() {
     if (!name || !title) return setError('Enter your name and meeting title.');
     setUser(name);
     try {
-      const res = await fetch(`${API_URL}/meetings/create?title=${encodeURIComponent(title)}&owner_name=${encodeURIComponent(name)}`, {
+      const res = await fetch(endpoints.createMeeting(title, name), {
         method: 'POST'
       });
       if (!res.ok) throw new Error('Failed to create room.');

@@ -2,9 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMeeting } from '../context/MeetingContext';
 import './Summary.css';
+import { endpoints } from '../api';
 
-const API_URL = 'https://f4b7-221-132-116-194.ngrok-free.app/api';
-const WS_URL = 'wss://f4b7-221-132-116-194.ngrok-free.app/ws';
 const MAX_WAIT_SECONDS = 30;
 
 export default function Summary() {
@@ -38,7 +37,7 @@ export default function Summary() {
 
     const fetchInsight = async () => {
       try {
-        const response = await fetch(`${API_URL}/insights/${meetingId}/view`, {
+        const response = await fetch(endpoints.getSummary(meetingId), {
           headers: {
             'Accept': 'application/json',
             'ngrok-skip-browser-warning': 'true'
@@ -103,7 +102,7 @@ export default function Summary() {
 
   useEffect(() => {
     if (!meetingId) return;
-    const ws = new window.WebSocket(`${WS_URL}/summary/${meetingId}`);
+    const ws = new window.WebSocket(endpoints.wsSummary(meetingId));
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);

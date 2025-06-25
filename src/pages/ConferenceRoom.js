@@ -27,6 +27,7 @@ export default function ConferenceRoom() {
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const backgroundPollingRef = useRef(null);
+  const [showSummary, setShowSummary] = useState(false);
 
   // Remove Jitsi iframe only when meeting has ended
   const removeJitsiIframe = () => {
@@ -327,6 +328,7 @@ export default function ConferenceRoom() {
   const handleGenerateSummary = () => {
     // Only allow if not already loading or generated
     if (!summaryLoading && !summaryGenerated) {
+      setShowSummary(true);
       setSummaryLoading(true);
       setSummaryError('');
       setSummaryMessage('');
@@ -336,6 +338,12 @@ export default function ConferenceRoom() {
         setSummaryLoading(false);
         setSummaryGenerated(true);
         console.log('Summary set (immediate):', backgroundSummary);
+      } else if (
+        backgroundSummaryMessage === 'This meeting does not have any summary'
+      ) {
+        setSummaryMessage('This meeting does not have any summary');
+        setSummaryLoading(false);
+        setSummaryGenerated(false);
       } else {
         // Otherwise, show loading and wait for background to finish
         const waitForSummary = setInterval(() => {
@@ -345,8 +353,11 @@ export default function ConferenceRoom() {
             setSummaryGenerated(true);
             clearInterval(waitForSummary);
             console.log('Summary set (delayed):', backgroundSummary);
-          } else if (backgroundSummaryMessage) {
-            setSummaryMessage(backgroundSummaryMessage);
+          } else if (backgroundSummaryMessage === 'This meeting does not have any summary') {
+            setSummaryMessage('This meeting does not have any summary');
+            setSummaryLoading(false);
+            setSummaryGenerated(false);
+            clearInterval(waitForSummary);
           }
         }, 1000);
       }
@@ -404,6 +415,15 @@ export default function ConferenceRoom() {
     }
   };
 
+  useEffect(() => {
+    setShowSummary(false);
+    setSummary(null);
+    setSummaryGenerated(false);
+    setSummaryLoading(false);
+    setSummaryError('');
+    setSummaryMessage('');
+  }, [meetingEnded, roomId]);
+
   if (!user || !roomId) return null;
 
   return (
@@ -436,7 +456,7 @@ export default function ConferenceRoom() {
         <div className="summary-overlay">
           <div className="summary-card">
             <h3>🎉 Meeting Ended!</h3>
-            {!summaryGenerated && !summaryLoading && !summaryMessage && !summaryError && (
+            {!summaryGenerated && !summaryLoading && !showSummary && !summaryError && (
               <>
                 <p>Click the button below to generate your meeting summary.</p>
                 <button onClick={handleGenerateSummary} className="generate-summary-btn" disabled={summaryLoading || summaryGenerated}>
@@ -444,20 +464,20 @@ export default function ConferenceRoom() {
                 </button>
               </>
             )}
-            {summaryLoading && (
+            {showSummary && summaryLoading && (
               <div className="loading-container">
                 <div className="loading-spinner"></div>
                 <p>Generating your meeting summary...</p>
                 <p className="loading-subtext">This may take a minute as we process the audio and generate insights.</p>
               </div>
             )}
-            {summaryError && !summaryGenerated && !summaryLoading && (
+            {showSummary && summaryError && !summaryGenerated && !summaryLoading && (
               <div className="error-container">
                 <p className="error-message">{summaryError}</p>
                 <button onClick={handleRefreshSummary} className="retry-btn">Retry</button>
               </div>
             )}
-            {summaryGenerated && summary && !summaryLoading && !summaryError && (
+            {showSummary && summaryGenerated && summary && !summaryLoading && !summaryError && (
               <>
                 <p>Your meeting summary is ready!</p>
                 <button onClick={handleViewSummary} className="view-summary-btn">
@@ -465,16 +485,7 @@ export default function ConferenceRoom() {
                 </button>
               </>
             )}
-            {/* Always show Show Summary button if backgroundSummaryReady and backgroundSummary are available */}
-            {backgroundSummaryReady && backgroundSummary && !summaryGenerated && !summaryLoading && !summaryError && (
-              <>
-                <p>Your meeting summary is ready!</p>
-                <button onClick={handleViewSummary} className="view-summary-btn">
-                  📋 Show Summary
-                </button>
-              </>
-            )}
-            {(summaryMessage === 'This meeting does not have any summary' || backgroundSummaryMessage === 'This meeting does not have any summary') && !summaryGenerated && !summaryLoading && !summaryError && (
+            {showSummary && summaryMessage === 'This meeting does not have any summary' && !summaryGenerated && !summaryLoading && !summaryError && (
               <div className="no-summary-message">
                 <h3>No Summary Available</h3>
                 <p>This meeting does not have any summary.</p>

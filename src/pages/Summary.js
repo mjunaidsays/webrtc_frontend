@@ -159,12 +159,12 @@ export default function Summary() {
     );
   }
 
-  if (insight.message && !insight.summary) {
+  if (insight.message === 'This meeting does not have any summary') {
     return (
       <div className="summary-container">
         <div className="no-summary">
-          <h2>Summary Not Available</h2>
-          <p>{insight.message}</p>
+          <h2>No Summary Available</h2>
+          <p>This meeting does not have any summary.</p>
         </div>
       </div>
     );

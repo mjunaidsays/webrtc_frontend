@@ -28,6 +28,8 @@ export default function ConferenceRoom() {
   const audioChunksRef = useRef([]);
   const backgroundPollingRef = useRef(null);
   const [showSummary, setShowSummary] = useState(false);
+  const [pollingTimeout, setPollingTimeout] = useState(null);
+  const [pollingInterval, setPollingInterval] = useState(null);
 
   // Remove Jitsi iframe only when meeting has ended
   const removeJitsiIframe = () => {
@@ -326,41 +328,72 @@ export default function ConferenceRoom() {
   }, [meetingEnded, roomId, summaryLoading]);
 
   const handleGenerateSummary = () => {
-    // Only allow if not already loading or generated
     if (!summaryLoading && !summaryGenerated) {
       setShowSummary(true);
       setSummaryLoading(true);
       setSummaryError('');
       setSummaryMessage('');
-      // If background summary is ready, show it immediately
-      if (backgroundSummaryReady && backgroundSummary) {
-        setSummary(backgroundSummary);
-        setSummaryLoading(false);
-        setSummaryGenerated(true);
-        console.log('Summary set (immediate):', backgroundSummary);
-      } else if (
-        backgroundSummaryMessage === 'This meeting does not have any summary'
-      ) {
-        setSummaryMessage('This meeting does not have any summary');
-        setSummaryLoading(false);
-        setSummaryGenerated(false);
-      } else {
-        // Otherwise, show loading and wait for background to finish
-        const waitForSummary = setInterval(() => {
-          if (backgroundSummaryReady && backgroundSummary) {
-            setSummary(backgroundSummary);
+      let attempts = 0;
+      const maxAttempts = 30; // 60 seconds (2s interval)
+      const poll = async () => {
+        attempts++;
+        try {
+          const res = await fetch(`${API_URL}/insights/${roomId}/view`, {
+            headers: {
+              'Accept': 'application/json',
+              'ngrok-skip-browser-warning': 'true'
+            }
+          });
+          if (!res.ok) {
+            setSummaryError('Failed to fetch summary.');
+            setSummaryLoading(false);
+            clearInterval(intervalId);
+            clearTimeout(timeoutId);
+            return;
+          }
+          const text = await res.text();
+          let data;
+          try {
+            data = JSON.parse(text);
+          } catch (jsonErr) {
+            setSummaryError('Error parsing server response.');
+            setSummaryLoading(false);
+            clearInterval(intervalId);
+            clearTimeout(timeoutId);
+            return;
+          }
+          if (data.summary_available && typeof data.summary === 'string' && data.summary.trim().length > 0) {
+            setSummary(data);
             setSummaryLoading(false);
             setSummaryGenerated(true);
-            clearInterval(waitForSummary);
-            console.log('Summary set (delayed):', backgroundSummary);
-          } else if (backgroundSummaryMessage === 'This meeting does not have any summary') {
-            setSummaryMessage('This meeting does not have any summary');
-            setSummaryLoading(false);
-            setSummaryGenerated(false);
-            clearInterval(waitForSummary);
+            clearInterval(intervalId);
+            clearTimeout(timeoutId);
+            return;
           }
-        }, 1000);
-      }
+        } catch (error) {
+          setSummaryError('Error fetching summary.');
+          setSummaryLoading(false);
+          clearInterval(intervalId);
+          clearTimeout(timeoutId);
+          return;
+        }
+        if (attempts >= maxAttempts) {
+          setSummaryMessage('This meeting does not have any summary');
+          setSummaryLoading(false);
+          setSummaryGenerated(false);
+          clearInterval(intervalId);
+          clearTimeout(timeoutId);
+        }
+      };
+      poll();
+      const intervalId = setInterval(poll, 2000);
+      setPollingInterval(intervalId);
+      const timeoutId = setTimeout(() => {
+        clearInterval(intervalId);
+        setPollingInterval(null);
+        setPollingTimeout(null);
+      }, maxAttempts * 2000 + 1000);
+      setPollingTimeout(timeoutId);
     }
   };
 
@@ -423,6 +456,13 @@ export default function ConferenceRoom() {
     setSummaryError('');
     setSummaryMessage('');
   }, [meetingEnded, roomId]);
+
+  useEffect(() => {
+    return () => {
+      if (pollingInterval) clearInterval(pollingInterval);
+      if (pollingTimeout) clearTimeout(pollingTimeout);
+    };
+  }, [pollingInterval, pollingTimeout]);
 
   if (!user || !roomId) return null;
 

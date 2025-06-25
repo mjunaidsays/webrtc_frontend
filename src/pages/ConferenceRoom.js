@@ -229,7 +229,10 @@ export default function ConferenceRoom() {
       attempts++;
       try {
         const res = await fetch(`${API_URL}/insights/${roomId}/view`, {
-          headers: { 'Accept': 'application/json' }
+          headers: {
+            'Accept': 'application/json',
+            'ngrok-skip-browser-warning': 'true'
+          }
         });
         if (!res.ok) {
           console.log('[POLL] Response not OK:', res.status);
@@ -366,7 +369,10 @@ export default function ConferenceRoom() {
     setSummaryMessage('');
     try {
       const res = await fetch(`${API_URL}/insights/${roomId}/view`, {
-        headers: { 'Accept': 'application/json' }
+        headers: {
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
+        }
       });
       if (res.ok) {
         const text = await res.text();
@@ -448,7 +454,12 @@ export default function ConferenceRoom() {
             {/* TEMP DEBUG BUTTON */}
             <button onClick={async () => {
               try {
-                const res = await fetch(`${API_URL}/insights/${roomId}/view`);
+                const res = await fetch(`${API_URL}/insights/${roomId}/view`, {
+                  headers: {
+                    'Accept': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                  }
+                });
                 if (res.ok) {
                   const data = await res.json();
                   console.log('[DEBUG] Manual fetch summary:', data);

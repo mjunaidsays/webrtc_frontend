@@ -39,7 +39,10 @@ export default function Summary() {
     const fetchInsight = async () => {
       try {
         const response = await fetch(`${API_URL}/insights/${meetingId}/view`, {
-          headers: { 'Accept': 'application/json' }
+          headers: {
+            'Accept': 'application/json',
+            'ngrok-skip-browser-warning': 'true'
+          }
         });
         if (response.ok) {
           const text = await response.text();

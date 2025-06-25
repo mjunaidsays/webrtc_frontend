@@ -1,7 +1,7 @@
 import { API_BASE_URL, WS_BASE_URL } from './config';
 
 export const endpoints = {
-  createMeeting: () => `${API_BASE_URL}/api/meetings/create`,
+  createMeeting: (title, owner_name) => `${API_BASE_URL}/api/meetings/create?title=${encodeURIComponent(title)}&owner_name=${encodeURIComponent(owner_name)}`,
   joinMeeting: (roomId) => `${API_BASE_URL}/api/meetings/${roomId}/join`,
   endMeeting: (roomId) => `${API_BASE_URL}/api/meetings/${roomId}/end`,
   meetingStatus: (roomId) => `${API_BASE_URL}/api/meetings/${roomId}/status`,

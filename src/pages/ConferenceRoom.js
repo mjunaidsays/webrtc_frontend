@@ -451,28 +451,6 @@ export default function ConferenceRoom() {
                 <p className="loading-subtext">This may take a minute as we process the audio and generate insights.</p>
               </div>
             )}
-            {/* TEMP DEBUG BUTTON */}
-            <button onClick={async () => {
-              try {
-                const res = await fetch(`${API_URL}/insights/${roomId}/view`, {
-                  headers: {
-                    'Accept': 'application/json',
-                    'ngrok-skip-browser-warning': 'true'
-                  }
-                });
-                if (res.ok) {
-                  const data = await res.json();
-                  console.log('[DEBUG] Manual fetch summary:', data);
-                  alert('Fetched summary! Check console.');
-                } else {
-                  console.error('[DEBUG] Fetch failed:', res.status);
-                  alert('Fetch failed: ' + res.status);
-                }
-              } catch (e) {
-                console.error('[DEBUG] Fetch error:', e);
-                alert('Fetch error: ' + e);
-              }
-            }} style={{margin:'1rem',background:'#eee',color:'#333',border:'1px solid #aaa',borderRadius:'8px',padding:'0.5rem 1rem'}}>Test Fetch Summary</button>
             {summaryError && !summaryGenerated && !summaryLoading && (
               <div className="error-container">
                 <p className="error-message">{summaryError}</p>

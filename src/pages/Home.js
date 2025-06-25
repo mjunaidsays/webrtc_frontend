@@ -4,7 +4,7 @@ import { useMeeting } from '../context/MeetingContext';
 import './Home.css';
 import logo from '../logo.svg';
 
-const API_URL = 'https://4c03-221-132-116-194.ngrok-free.app/api';
+const API_URL = 'https://48c4-221-132-116-194.ngrok-free.app/api';
 
 export default function Home() {
   const { setUser, setRoom, setMeeting } = useMeeting();

@@ -5,8 +5,8 @@ import './ConferenceRoom.css';
 
 const JITSI_DOMAIN = '8x8.vc';
 const JAAS_APP_ID = 'vpaas-magic-cookie-4d98055dcb7a4e7e818e22aa1b84781d';
-const API_URL = 'https://4c03-221-132-116-194.ngrok-free.app/api';
-const WS_URL = 'wss://4c03-221-132-116-194.ngrok-free.app/ws';
+const API_URL = 'https://48c4-221-132-116-194.ngrok-free.app/api';
+const WS_URL = 'wss://48c4-221-132-116-194.ngrok-free.app/ws';
 
 export default function ConferenceRoom() {
   const { user } = useMeeting();
@@ -62,7 +62,7 @@ export default function ConferenceRoom() {
     let script;
     async function createJitsiMeetingWithJWT() {
       // Use a hardcoded JWT for testing
-      const hardcodedJWT = "eyJraWQiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQvZDM3ZmMzLVNBTVBMRV9BUFAiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6ImNoYXQiLCJpYXQiOjE3NTA4Mjg0NjcsImV4cCI6MTc1MDgzNTY2NywibmJmIjoxNzUwODI4NDYyLCJzdWIiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQiLCJjb250ZXh0Ijp7ImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOnRydWUsIm91dGJvdW5kLWNhbGwiOnRydWUsInNpcC1vdXRib3VuZC1jYWxsIjpmYWxzZSwidHJhbnNjcmlwdGlvbiI6dHJ1ZSwicmVjb3JkaW5nIjp0cnVlLCJmbGlwIjpmYWxzZX0sInVzZXIiOnsiaGlkZGVuLWZyb20tcmVjb3JkZXIiOmZhbHNlLCJtb2RlcmF0b3IiOnRydWUsIm5hbWUiOiJtanVuYWlkMjI4MjAwMSIsImlkIjoiZ29vZ2xlLW9hdXRoMnwxMTAwMTA3OTgwNzY5MDc1MDMxMDYiLCJhdmF0YXIiOiIiLCJlbWFpbCI6Im1qdW5haWQyMjgyMDAxQGdtYWlsLmNvbSJ9fSwicm9vbSI6IioifQ.iHvsamoEXxaqV4in9g4KjxGepuE4e1rNaoI4iEFsU4TGYKfPEoeBICU3CDPMYTkkLLj_fNFNevRmtE9p2tZWif8XeL_j22klmJbfOnLScLl6F3z5YqQA8dpWAm1RGy6GsDGhnV0QHUKKtPhRE85eSfeJntEtGHL4Kn0lHYDZAlrcxPEcqZbiTmkWMM11ppFtYBNzuBkh_VLHjTZUSX-2yZsNagtCLwAr6uKCaiZWrXaN_JzAAwzmw5Mekb8hI15lAd_RExtcPqUEthfxC3F5LaBNribJc83ApD1vwBOk81ba80mkcFWWqO_OSktmOyxO65-5igx9bfzQkmOZnXdBOw";
+      const hardcodedJWT = "eyJraWQiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQvZDM3ZmMzLVNBTVBMRV9BUFAiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6ImNoYXQiLCJpYXQiOjE3NTA4MzMwODAsImV4cCI6MTc1MDg0MDI4MCwibmJmIjoxNzUwODMzMDc1LCJzdWIiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQiLCJjb250ZXh0Ijp7ImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOnRydWUsIm91dGJvdW5kLWNhbGwiOnRydWUsInNpcC1vdXRib3VuZC1jYWxsIjpmYWxzZSwidHJhbnNjcmlwdGlvbiI6dHJ1ZSwicmVjb3JkaW5nIjp0cnVlLCJmbGlwIjpmYWxzZX0sInVzZXIiOnsiaGlkZGVuLWZyb20tcmVjb3JkZXIiOmZhbHNlLCJtb2RlcmF0b3IiOnRydWUsIm5hbWUiOiJtanVuYWlkMjI4MjAwMSIsImlkIjoiZ29vZ2xlLW9hdXRoMnwxMTAwMTA3OTgwNzY5MDc1MDMxMDYiLCJhdmF0YXIiOiIiLCJlbWFpbCI6Im1qdW5haWQyMjgyMDAxQGdtYWlsLmNvbSJ9fSwicm9vbSI6IioifQ.JMuBMC6UoLg-ZFaFnouZnxjElK9md2Z4B-rr7Unkfr-dZE2_BWjtvyIBi9lW5NiSIbVp3iCWPyNqvgiR6mUUD7KCzDrUZxpX7HLnGLZS60Hq9G4XmP1kr2iBHddMuP7-T8miOFWaLzOeHxgaR4zLllq3QgmXN4ZWeafxtEcX_2HakkkESvdA_yVaEkSCqW7FN-1M9xT49zh851yDCAoaPrKjBl265zY74z5tp_7VBvJMcqxh3LMtPu3EN4yyb61RcbjOyiKDVQKQleuraqTuXYqGY9fUNEFH5gXwvNhjBk7rGsEbZVNg-LrUofjcJ6o2cT4wEfaWyJxkDkDnupPMhQ";
       const room = `${JAAS_APP_ID}/${roomId}`;
       if (window.JitsiMeetExternalAPI && jitsiRef.current && !meetingEnded) {
         if (apiRef.current) {

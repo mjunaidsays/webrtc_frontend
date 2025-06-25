@@ -474,7 +474,7 @@ export default function ConferenceRoom() {
                 </button>
               </>
             )}
-            {summaryMessage === 'This meeting does not have any summary' && !summaryGenerated && !summaryLoading && !summaryError && (
+            {(summaryMessage === 'This meeting does not have any summary' || backgroundSummaryMessage === 'This meeting does not have any summary') && !summaryGenerated && !summaryLoading && !summaryError && (
               <div className="no-summary-message">
                 <h3>No Summary Available</h3>
                 <p>This meeting does not have any summary.</p>

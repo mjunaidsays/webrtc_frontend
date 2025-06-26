@@ -8,7 +8,7 @@ const JITSI_DOMAIN = '8x8.vc';
 const JAAS_APP_ID = 'vpaas-magic-cookie-4d98055dcb7a4e7e818e22aa1b84781d';
 
 export default function ConferenceRoom() {
-  const { user } = useMeeting();
+  const { user, meeting, setMeeting } = useMeeting();
   const { roomId } = useParams();
   const navigate = useNavigate();
   const jitsiRef = useRef();
@@ -30,6 +30,10 @@ export default function ConferenceRoom() {
   const [pollingTimeout, setPollingTimeout] = useState(null);
   const [pollingInterval, setPollingInterval] = useState(null);
   const [audioUploaded, setAudioUploaded] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [isHost, setIsHost] = useState(false);
+  const controlWSRef = useRef(null);
 
   // Remove Jitsi iframe only when meeting has ended
   const removeJitsiIframe = () => {
@@ -171,88 +175,28 @@ export default function ConferenceRoom() {
     };
   }, [isCallActive, meetingEnded, roomId]);
 
-  const handleEndMeeting = async () => {
+  // Leave meeting for non-hosts
+  const leaveMeeting = async () => {
     setMeetingEnded(true);
-    // Stop audio recording
-    let uploadPromise = Promise.resolve();
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      uploadPromise = new Promise((resolve) => {
-        mediaRecorderRef.current.onstop = async () => {
-          // Log audio chunks for debugging
-          console.log('Audio chunks:', audioChunksRef.current.length, audioChunksRef.current);
-          if (audioChunksRef.current.length > 0) {
-            // Calculate total size
-            let totalSize = 0;
-            audioChunksRef.current.forEach(chunk => totalSize += chunk.size);
-            console.log('Total audio size (bytes):', totalSize);
-            const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-            const formData = new FormData();
-            formData.append('audio_file', audioBlob, `${roomId}.webm`);
-            formData.append('user_id', user);
-            try {
-              const uploadRes = await fetch(endpoints.uploadAudio(roomId), {
-                method: 'POST',
-                body: formData
-              });
-              const uploadText = await uploadRes.text();
-              console.log('Audio upload response:', uploadRes.status, uploadText);
-              if (!uploadRes.ok) {
-                alert('Audio upload failed. Please check your connection and try again.');
-              } else {
-                // Trigger backend processing (merge + transcribe)
-                if (endpoints.processAudio) {
-                  try {
-                    await fetch(endpoints.processAudio(roomId), { method: 'POST' });
-                    console.log('Triggered backend audio processing');
-                  } catch (err) {
-                    console.error('Failed to trigger backend audio processing:', err);
-                  }
-                } else {
-                  console.error('processAudio endpoint is not defined');
-                }
-              }
-            } catch (err) {
-              console.error('Failed to upload audio:', err);
-              alert('Audio upload failed. Please check your connection and try again.');
-            }
-          } else {
-            // No audio was recorded
-            console.warn('No audio was recorded.');
-            alert('No audio was recorded. Please check your microphone and browser permissions.');
-          }
-          resolve();
-        };
-        mediaRecorderRef.current.stop();
-      });
+    await uploadAudioIfNeeded();
+    navigate('/');
+  };
+
+  // End meeting handler for all users
+  const handleEndMeeting = async () => {
+    if (isHost) {
+      // Host: broadcast end_meeting, call backend, end for all
+      if (controlWSRef.current && controlWSRef.current.readyState === 1) {
+        controlWSRef.current.send(JSON.stringify({ type: 'end_meeting' }));
+      }
+      // Mark meeting as ended in backend and trigger summary
+      await fetch(`/api/meetings/${roomId}/end`, { method: 'POST' });
+      setMeetingEnded(true);
+      await uploadAudioIfNeeded();
+    } else {
+      // Non-host: just leave meeting
+      await leaveMeeting();
     }
-    // Aggressively hide the Jitsi iframe
-    if (jitsiRef.current) {
-      jitsiRef.current.style.display = 'none';
-      jitsiRef.current.style.visibility = 'hidden';
-      jitsiRef.current.style.opacity = '0';
-      jitsiRef.current.style.zIndex = '-1';
-      const iframes = jitsiRef.current.querySelectorAll('iframe');
-      iframes.forEach(iframe => {
-        iframe.style.display = 'none';
-        iframe.style.visibility = 'hidden';
-        iframe.style.opacity = '0';
-        iframe.style.zIndex = '-1';
-      });
-    }
-    if (apiRef.current) {
-      apiRef.current.dispose();
-      apiRef.current = null;
-    }
-    // Wait for upload to finish before ending meeting
-    await uploadPromise;
-    try {
-      await fetch(endpoints.endMeeting(roomId), {
-        method: 'POST'
-      });
-    } catch (error) {
-      console.error('Failed to end meeting:', error);
-    }
-    uploadAudioIfNeeded();
   };
 
   // Background polling for summary after meeting ends
@@ -499,24 +443,91 @@ export default function ConferenceRoom() {
   }, [pollingInterval, pollingTimeout]);
 
   const uploadAudioIfNeeded = async () => {
-    if (!audioUploaded) {
-      await handleEndMeeting();
-      setAudioUploaded(true);
+    if (!audioUploaded && !isUploading) {
+      setIsUploading(true);
+      setUploadError('');
+      try {
+        await handleEndMeeting();
+        setAudioUploaded(true);
+      } catch (err) {
+        setUploadError('Failed to upload audio. Please try again.');
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
+  // Update Back to Home button handler
+  const handleBackToHome = async () => {
+    if (isUploading) return;
+    setIsUploading(true);
+    setUploadError('');
+    try {
+      await uploadAudioIfNeeded();
+      navigate('/');
+    } catch (err) {
+      setUploadError('Failed to upload audio. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Add beforeunload warning if uploading
   useEffect(() => {
     const beforeunloadHandler = (event) => {
-      event.preventDefault();
-      uploadAudioIfNeeded();
+      if (isUploading) {
+        event.preventDefault();
+        event.returnValue = 'Audio is still uploading. Are you sure you want to leave?';
+        return event.returnValue;
+      }
     };
-
     window.addEventListener('beforeunload', beforeunloadHandler);
-
     return () => {
       window.removeEventListener('beforeunload', beforeunloadHandler);
     };
-  }, [uploadAudioIfNeeded]);
+  }, [isUploading]);
+
+  // Fetch meeting object on mount if not present
+  useEffect(() => {
+    async function fetchMeeting() {
+      if (!meeting && roomId) {
+        const res = await fetch(`/api/meetings/${roomId}`);
+        if (res.ok) {
+          const m = await res.json();
+          setMeeting(m);
+        }
+      }
+    }
+    fetchMeeting();
+  }, [meeting, roomId, setMeeting]);
+
+  // Set isHost when meeting is loaded
+  useEffect(() => {
+    if (meeting && user) {
+      setIsHost(meeting.owner_id === user);
+    }
+  }, [meeting, user]);
+
+  // Connect to control WebSocket
+  useEffect(() => {
+    if (!roomId) return;
+    const ws = new window.WebSocket(`${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws/control/${roomId}`);
+    controlWSRef.current = ws;
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'end_meeting') {
+          if (!meetingEnded) {
+            setMeetingEnded(true);
+            uploadAudioIfNeeded();
+          }
+        }
+      } catch (e) { console.error('[Control WS] Error parsing message:', e); }
+    };
+    ws.onerror = (e) => { console.error('[Control WS] Error:', e); };
+    ws.onclose = () => { console.log('[Control WS] Closed'); };
+    return () => ws.close();
+  }, [roomId, meetingEnded]);
 
   if (!user || !roomId) return null;
 
@@ -582,9 +593,23 @@ export default function ConferenceRoom() {
                 <p>This meeting does not have any summary.</p>
               </div>
             )}
-            <button onClick={() => navigate('/')} className="home-btn">
-              🏠 Back to Home
+            <button
+              onClick={handleBackToHome}
+              className="home-btn"
+              disabled={isUploading}
+            >
+              {isUploading ? (
+                <>
+                  <span className="loading-spinner" style={{marginRight: 8}}></span>
+                  Uploading audio...
+                </>
+              ) : (
+                <>
+                  🏠 Back to Home
+                </>
+              )}
             </button>
+            {uploadError && <div className="error-message">{uploadError}</div>}
           </div>
         </div>
       )}

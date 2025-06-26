@@ -64,7 +64,7 @@ export default function ConferenceRoom() {
     let script;
     async function createJitsiMeetingWithJWT() {
       // Use a hardcoded JWT for testing
-      const hardcodedJWT = "eyJraWQiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQvZDM3ZmMzLVNBTVBMRV9BUFAiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6ImNoYXQiLCJpYXQiOjE3NTA5Mjg4ODksImV4cCI6MTc1MDkzNjA4OSwibmJmIjoxNzUwOTI4ODg0LCJzdWIiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQiLCJjb250ZXh0Ijp7ImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOnRydWUsIm91dGJvdW5kLWNhbGwiOnRydWUsInNpcC1vdXRib3VuZC1jYWxsIjpmYWxzZSwidHJhbnNjcmlwdGlvbiI6dHJ1ZSwicmVjb3JkaW5nIjp0cnVlLCJmbGlwIjpmYWxzZX0sInVzZXIiOnsiaGlkZGVuLWZyb20tcmVjb3JkZXIiOmZhbHNlLCJtb2RlcmF0b3IiOnRydWUsIm5hbWUiOiJtanVuYWlkMjI4MjAwMSIsImlkIjoiZ29vZ2xlLW9hdXRoMnwxMTAwMTA3OTgwNzY5MDc1MDMxMDYiLCJhdmF0YXIiOiIiLCJlbWFpbCI6Im1qdW5haWQyMjgyMDAxQGdtYWlsLmNvbSJ9fSwicm9vbSI6IioifQ.JRgKB9EHpgcB4-cqeAAmO_bRmZM6dUNbuhNLlYPZ4Fi9OG0RENkuOrcSslA2-SVEXtLQeg8tx4HlKYuRwvY9DxJPCF_Y1isHKbsPr8NzLV03H2RDn8zVMpP0bT0lllSmTDpJhSKktfvvtSyHeTHqyFf2dkJNtfGc3_34gMEknQ8nuuE6ga_o32l-slVNfdrDy43xs77_h6stL-5UGvX-cg7itjG8HLPK670iK6KYcWBUe3iK7xk4siFKDZ_mj8qCIt32qqNobI8CvC7XNcWrbhPQlTBePL1UzsIUOK1rklM66xbs8pkvmWnpqpRTIZYMcr-v6fSPSoa6CwLcs_DVew";
+      const hardcodedJWT = "eyJraWQiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQvZDM3ZmMzLVNBTVBMRV9BUFAiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6ImNoYXQiLCJpYXQiOjE3NTA5MzI5MjUsImV4cCI6MTc1MDk0MDEyNSwibmJmIjoxNzUwOTMyOTIwLCJzdWIiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQiLCJjb250ZXh0Ijp7ImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOnRydWUsIm91dGJvdW5kLWNhbGwiOnRydWUsInNpcC1vdXRib3VuZC1jYWxsIjpmYWxzZSwidHJhbnNjcmlwdGlvbiI6dHJ1ZSwicmVjb3JkaW5nIjp0cnVlLCJmbGlwIjpmYWxzZX0sInVzZXIiOnsiaGlkZGVuLWZyb20tcmVjb3JkZXIiOmZhbHNlLCJtb2RlcmF0b3IiOnRydWUsIm5hbWUiOiJtanVuYWlkMjI4MjAwMSIsImlkIjoiZ29vZ2xlLW9hdXRoMnwxMTAwMTA3OTgwNzY5MDc1MDMxMDYiLCJhdmF0YXIiOiIiLCJlbWFpbCI6Im1qdW5haWQyMjgyMDAxQGdtYWlsLmNvbSJ9fSwicm9vbSI6IioifQ.DKgX2Aa5WfUtpvVA_ZrS9d6rYX94-78ZWBC7tezLV9gIPLCwcPNFPHh8_4BYdEcyuzs6d9rbaqNbW1_sbpIEQWexbRmrU-7w0UFneComS5mW3Bb-xHIi2kbPM5vMxzpiIF18S0jv9ioXvJTSllqcfY2-QB3d0fQtB3k-WkYu2ucRQO-Ief4Jr63tK7MdUnfR2NrZs6qvW8DyOb7uWxps0E0RB153r1Tr0sRuzSRWMjtknHkCYui_4iPB_ZR-khX6iXJa0IBVOSyxrTIP8SjGvIRf11DHVqvLfLipO2chYpQDa7CDrhXkFKILfURUeEtabFMBQzpf8Bod1koNy6ndnw";
       const room = `${JAAS_APP_ID}/${roomId}`;
       if (window.JitsiMeetExternalAPI && jitsiRef.current && !meetingEnded) {
         if (apiRef.current) {
@@ -113,6 +113,10 @@ export default function ConferenceRoom() {
         });
         apiRef.current.addListener('videoConferenceJoined', () => {
           setIsCallActive(true);
+          // Explicitly set the display name to the user's chosen name
+          if (apiRef.current && user) {
+            apiRef.current.executeCommand('displayName', user);
+          }
         });
         apiRef.current.addListener('videoConferenceLeft', () => {
           if (!meetingEnded) handleEndMeeting();
@@ -183,6 +187,7 @@ export default function ConferenceRoom() {
             const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
             const formData = new FormData();
             formData.append('audio_file', audioBlob, `${roomId}.webm`);
+            formData.append('user_id', user);
             try {
               const uploadRes = await fetch(endpoints.uploadAudio(roomId), {
                 method: 'POST',

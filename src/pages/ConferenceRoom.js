@@ -33,10 +33,6 @@ export default function ConferenceRoom() {
   const [audioUploaded, setAudioUploaded] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
-  const [isHost, setIsHost] = useState(false);
-  const controlWSRef = useRef(null);
-  const [leftEarly, setLeftEarly] = useState(false);
-  const [inProgressMessage, setInProgressMessage] = useState('');
 
   // Remove Jitsi iframe only when meeting has ended
   const removeJitsiIframe = () => {
@@ -178,30 +174,10 @@ export default function ConferenceRoom() {
     };
   }, [isCallActive, meetingEnded, roomId]);
 
-  // Leave meeting for non-hosts
-  const leaveMeeting = async () => {
-    setMeetingEnded(true);
-    setLeftEarly(true);
-    await uploadAudioIfNeeded();
-    // Do NOT navigate home, show summary overlay
-  };
-
   // End meeting handler for all users
   const handleEndMeeting = async () => {
-    if (isHost) {
-      // Host: broadcast end_meeting, call backend, end for all
-      if (controlWSRef.current && controlWSRef.current.readyState === 1) {
-        controlWSRef.current.send(JSON.stringify({ type: 'end_meeting' }));
-      }
-      // Mark meeting as ended in backend and trigger summary
-      await fetch(`/api/meetings/${roomId}/end`, { method: 'POST' });
-      setMeetingEnded(true);
-      await uploadAudioIfNeeded();
-      // DO NOT navigate home here; show summary overlay
-    } else {
-      // Non-host: just leave meeting
-      await leaveMeeting();
-    }
+    setMeetingEnded(true);
+    await uploadAudioIfNeeded();
   };
 
   // Background polling for summary after meeting ends
@@ -312,24 +288,6 @@ export default function ConferenceRoom() {
 
   // Generate summary handler with leftEarly logic
   const handleGenerateSummary = async () => {
-    setInProgressMessage('');
-    if (leftEarly && !isHost) {
-      // Check meeting status from backend
-      try {
-        const res = await fetch(`/api/meetings/${roomId}/status`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.status === 'active') {
-            setInProgressMessage('Meeting is still in progress. Please wait for the host to end the meeting.');
-            return;
-          }
-        }
-      } catch (err) {
-        setInProgressMessage('Could not check meeting status. Please try again.');
-        return;
-      }
-    }
-    // Proceed as normal
     if (!summaryLoading && !summaryGenerated) {
       setShowSummary(true);
       setSummaryLoading(true);
@@ -525,35 +483,6 @@ export default function ConferenceRoom() {
     fetchMeeting();
   }, [meeting, roomId, setMeeting]);
 
-  // Set isHost when meeting is loaded
-  useEffect(() => {
-    if (meeting && user) {
-      setIsHost(meeting.owner_id === user);
-    }
-  }, [meeting, user]);
-
-  // WebSocket event handler: when 'end_meeting' is received, end meeting for all
-  useEffect(() => {
-    if (!roomId) return;
-    const ws = new window.WebSocket(`${WS_BASE_URL}/ws/control/${roomId}`);
-    controlWSRef.current = ws;
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === 'end_meeting') {
-          if (!meetingEnded) {
-            setMeetingEnded(true);
-            uploadAudioIfNeeded();
-            // DO NOT navigate home; show summary overlay
-          }
-        }
-      } catch (e) { console.error('[Control WS] Error parsing message:', e); }
-    };
-    ws.onerror = (e) => { console.error('[Control WS] Error:', e); };
-    ws.onclose = () => { console.log('[Control WS] Closed'); };
-    return () => ws.close();
-  }, [roomId, meetingEnded]);
-
   if (!user || !roomId) return null;
 
   return (
@@ -584,13 +513,7 @@ export default function ConferenceRoom() {
         <div className="summary-overlay">
           <div className="summary-card">
             <h3>🎉 Meeting Ended!</h3>
-            {inProgressMessage && (
-              <div className="no-summary-message">
-                <h3>Meeting In Progress</h3>
-                <p>{inProgressMessage}</p>
-              </div>
-            )}
-            {!summaryGenerated && !summaryLoading && !showSummary && !summaryError && !inProgressMessage && (
+            {!summaryGenerated && !summaryLoading && !showSummary && !summaryError && (
               <>
                 <p>Click the button below to generate your meeting summary.</p>
                 <button onClick={handleGenerateSummary} className="generate-summary-btn" disabled={summaryLoading || summaryGenerated}>

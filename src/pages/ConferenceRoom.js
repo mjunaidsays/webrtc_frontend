@@ -34,6 +34,8 @@ export default function ConferenceRoom() {
   const [uploadError, setUploadError] = useState('');
   const [isHost, setIsHost] = useState(false);
   const controlWSRef = useRef(null);
+  const [leftEarly, setLeftEarly] = useState(false);
+  const [inProgressMessage, setInProgressMessage] = useState('');
 
   // Remove Jitsi iframe only when meeting has ended
   const removeJitsiIframe = () => {
@@ -178,8 +180,9 @@ export default function ConferenceRoom() {
   // Leave meeting for non-hosts
   const leaveMeeting = async () => {
     setMeetingEnded(true);
+    setLeftEarly(true);
     await uploadAudioIfNeeded();
-    navigate('/');
+    // Do NOT navigate home, show summary overlay
   };
 
   // End meeting handler for all users
@@ -193,6 +196,7 @@ export default function ConferenceRoom() {
       await fetch(`/api/meetings/${roomId}/end`, { method: 'POST' });
       setMeetingEnded(true);
       await uploadAudioIfNeeded();
+      // DO NOT navigate home here; show summary overlay
     } else {
       // Non-host: just leave meeting
       await leaveMeeting();
@@ -305,7 +309,26 @@ export default function ConferenceRoom() {
     return () => ws.close();
   }, [meetingEnded, roomId, summaryLoading]);
 
-  const handleGenerateSummary = () => {
+  // Generate summary handler with leftEarly logic
+  const handleGenerateSummary = async () => {
+    setInProgressMessage('');
+    if (leftEarly) {
+      // Check meeting status from backend
+      try {
+        const res = await fetch(`/api/meetings/${roomId}/status`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === 'active') {
+            setInProgressMessage('Meeting is still in progress. Please wait for the host to end the meeting.');
+            return;
+          }
+        }
+      } catch (err) {
+        setInProgressMessage('Could not check meeting status. Please try again.');
+        return;
+      }
+    }
+    // Proceed as normal
     if (!summaryLoading && !summaryGenerated) {
       setShowSummary(true);
       setSummaryLoading(true);
@@ -457,7 +480,7 @@ export default function ConferenceRoom() {
     }
   };
 
-  // Update Back to Home button handler
+  // Update Back to Home button handler to only navigate home when user clicks it
   const handleBackToHome = async () => {
     if (isUploading) return;
     setIsUploading(true);
@@ -508,7 +531,7 @@ export default function ConferenceRoom() {
     }
   }, [meeting, user]);
 
-  // Connect to control WebSocket
+  // WebSocket event handler: when 'end_meeting' is received, end meeting for all
   useEffect(() => {
     if (!roomId) return;
     const ws = new window.WebSocket(`${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws/control/${roomId}`);
@@ -520,6 +543,7 @@ export default function ConferenceRoom() {
           if (!meetingEnded) {
             setMeetingEnded(true);
             uploadAudioIfNeeded();
+            // DO NOT navigate home; show summary overlay
           }
         }
       } catch (e) { console.error('[Control WS] Error parsing message:', e); }
@@ -554,11 +578,18 @@ export default function ConferenceRoom() {
       <div className="video-container">
         {!meetingEnded && <div ref={jitsiRef} className="jitsi-frame" />}
       </div>
+      {/* Always show summary overlay after meeting end */}
       {meetingEnded && (
         <div className="summary-overlay">
           <div className="summary-card">
             <h3>🎉 Meeting Ended!</h3>
-            {!summaryGenerated && !summaryLoading && !showSummary && !summaryError && (
+            {inProgressMessage && (
+              <div className="no-summary-message">
+                <h3>Meeting In Progress</h3>
+                <p>{inProgressMessage}</p>
+              </div>
+            )}
+            {!summaryGenerated && !summaryLoading && !showSummary && !summaryError && !inProgressMessage && (
               <>
                 <p>Click the button below to generate your meeting summary.</p>
                 <button onClick={handleGenerateSummary} className="generate-summary-btn" disabled={summaryLoading || summaryGenerated}>

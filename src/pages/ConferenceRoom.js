@@ -29,6 +29,7 @@ export default function ConferenceRoom() {
   const [showSummary, setShowSummary] = useState(false);
   const [pollingTimeout, setPollingTimeout] = useState(null);
   const [pollingInterval, setPollingInterval] = useState(null);
+  const [audioUploaded, setAudioUploaded] = useState(false);
 
   // Remove Jitsi iframe only when meeting has ended
   const removeJitsiIframe = () => {
@@ -251,6 +252,7 @@ export default function ConferenceRoom() {
     } catch (error) {
       console.error('Failed to end meeting:', error);
     }
+    uploadAudioIfNeeded();
   };
 
   // Background polling for summary after meeting ends
@@ -496,6 +498,26 @@ export default function ConferenceRoom() {
     };
   }, [pollingInterval, pollingTimeout]);
 
+  const uploadAudioIfNeeded = async () => {
+    if (!audioUploaded) {
+      await handleEndMeeting();
+      setAudioUploaded(true);
+    }
+  };
+
+  useEffect(() => {
+    const beforeunloadHandler = (event) => {
+      event.preventDefault();
+      uploadAudioIfNeeded();
+    };
+
+    window.addEventListener('beforeunload', beforeunloadHandler);
+
+    return () => {
+      window.removeEventListener('beforeunload', beforeunloadHandler);
+    };
+  }, [uploadAudioIfNeeded]);
+
   if (!user || !roomId) return null;
 
   return (
@@ -516,9 +538,6 @@ export default function ConferenceRoom() {
               🛑 End Meeting
             </button>
           )}
-          <button onClick={handleLeaveRoom} className="leave-room-btn">
-            🚪 Leave Room
-          </button>
         </div>
       </div>
       <div className="video-container">

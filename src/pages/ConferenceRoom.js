@@ -197,6 +197,14 @@ export default function ConferenceRoom() {
               console.log('Audio upload response:', uploadRes.status, uploadText);
               if (!uploadRes.ok) {
                 alert('Audio upload failed. Please check your connection and try again.');
+              } else {
+                // Trigger backend processing (merge + transcribe)
+                try {
+                  await fetch(endpoints.processAudio(roomId), { method: 'POST' });
+                  console.log('Triggered backend audio processing');
+                } catch (err) {
+                  console.error('Failed to trigger backend audio processing:', err);
+                }
               }
             } catch (err) {
               console.error('Failed to upload audio:', err);

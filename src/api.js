@@ -10,4 +10,5 @@ export const endpoints = {
   getSummary: (roomId) => `${API_BASE_URL}/api/insights/${roomId}/view`,
   wsSummary: (roomId) => `${WS_BASE_URL}/ws/summary/${roomId}`,
   wsChat: () => `${WS_BASE_URL}/ws/chat/`,
+  processAudio: (roomId) => `${API_BASE_URL}/api/transcriptions/${roomId}/process`,
 }; 

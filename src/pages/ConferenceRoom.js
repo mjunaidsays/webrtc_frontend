@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useMeeting } from '../context/MeetingContext';
 import './ConferenceRoom.css';
 import { endpoints } from '../api';
+import { WS_BASE_URL } from '../config';
 
 const JITSI_DOMAIN = '8x8.vc';
 const JAAS_APP_ID = 'vpaas-magic-cookie-4d98055dcb7a4e7e818e22aa1b84781d';
@@ -312,7 +313,7 @@ export default function ConferenceRoom() {
   // Generate summary handler with leftEarly logic
   const handleGenerateSummary = async () => {
     setInProgressMessage('');
-    if (leftEarly) {
+    if (leftEarly && !isHost) {
       // Check meeting status from backend
       try {
         const res = await fetch(`/api/meetings/${roomId}/status`);
@@ -534,7 +535,7 @@ export default function ConferenceRoom() {
   // WebSocket event handler: when 'end_meeting' is received, end meeting for all
   useEffect(() => {
     if (!roomId) return;
-    const ws = new window.WebSocket(`${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws/control/${roomId}`);
+    const ws = new window.WebSocket(`${WS_BASE_URL}/ws/control/${roomId}`);
     controlWSRef.current = ws;
     ws.onmessage = (event) => {
       try {

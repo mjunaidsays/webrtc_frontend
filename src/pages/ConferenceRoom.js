@@ -199,11 +199,15 @@ export default function ConferenceRoom() {
                 alert('Audio upload failed. Please check your connection and try again.');
               } else {
                 // Trigger backend processing (merge + transcribe)
-                try {
-                  await fetch(endpoints.processAudio(roomId), { method: 'POST' });
-                  console.log('Triggered backend audio processing');
-                } catch (err) {
-                  console.error('Failed to trigger backend audio processing:', err);
+                if (endpoints.processAudio) {
+                  try {
+                    await fetch(endpoints.processAudio(roomId), { method: 'POST' });
+                    console.log('Triggered backend audio processing');
+                  } catch (err) {
+                    console.error('Failed to trigger backend audio processing:', err);
+                  }
+                } else {
+                  console.error('processAudio endpoint is not defined');
                 }
               }
             } catch (err) {

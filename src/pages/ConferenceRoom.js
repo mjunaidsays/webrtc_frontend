@@ -176,11 +176,11 @@ export default function ConferenceRoom() {
 
   // End meeting handler for all users
   const handleEndMeeting = async () => {
-    // 1. Start uploading audio (do not await)
-    uploadAudioIfNeeded();
+    // 1. Stop and upload audio (await this!)
+    await uploadAudioIfNeeded();
     // 2. End the meeting (triggers backend processing)
     await fetch(endpoints.endMeeting(roomId), { method: 'POST' });
-    // 3. Update UI state immediately
+    // 3. Update UI state
     setMeetingEnded(true);
   };
 

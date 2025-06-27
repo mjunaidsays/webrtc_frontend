@@ -425,11 +425,28 @@ export default function ConferenceRoom() {
   }, [pollingInterval, pollingTimeout]);
 
   const uploadAudioIfNeeded = async () => {
-    if (!audioUploaded && !isUploading) {
+    if (!audioUploaded && !isUploading && audioChunksRef.current.length > 0) {
       setIsUploading(true);
       setUploadError('');
       try {
-        await handleEndMeeting();
+        // Stop the recorder if still running
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+          await new Promise(resolve => {
+            mediaRecorderRef.current.onstop = resolve;
+            mediaRecorderRef.current.stop();
+          });
+        }
+        // Combine audio chunks
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const formData = new FormData();
+        formData.append('audio_file', audioBlob, `${user || 'user'}.webm`);
+        formData.append('user_id', user || 'user');
+        // Upload to backend
+        const res = await fetch(endpoints.uploadAudio(roomId), {
+          method: 'POST',
+          body: formData,
+        });
+        if (!res.ok) throw new Error('Failed to upload audio');
         setAudioUploaded(true);
       } catch (err) {
         setUploadError('Failed to upload audio. Please try again.');

@@ -68,7 +68,7 @@ export default function ConferenceRoom() {
     let script;
     async function createJitsiMeetingWithJWT() {
       // Use a hardcoded JWT for testing
-      const hardcodedJWT = "eyJraWQiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQvZDM3ZmMzLVNBTVBMRV9BUFAiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6ImNoYXQiLCJpYXQiOjE3NTEwMTY3MDEsImV4cCI6MTc1MTAyMzkwMSwibmJmIjoxNzUxMDE2Njk2LCJzdWIiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQiLCJjb250ZXh0Ijp7ImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOnRydWUsIm91dGJvdW5kLWNhbGwiOnRydWUsInNpcC1vdXRib3VuZC1jYWxsIjpmYWxzZSwidHJhbnNjcmlwdGlvbiI6dHJ1ZSwicmVjb3JkaW5nIjp0cnVlLCJmbGlwIjpmYWxzZX0sInVzZXIiOnsiaGlkZGVuLWZyb20tcmVjb3JkZXIiOmZhbHNlLCJtb2RlcmF0b3IiOnRydWUsIm5hbWUiOiJtanVuYWlkMjI4MjAwMSIsImlkIjoiZ29vZ2xlLW9hdXRoMnwxMTAwMTA3OTgwNzY5MDc1MDMxMDYiLCJhdmF0YXIiOiIiLCJlbWFpbCI6Im1qdW5haWQyMjgyMDAxQGdtYWlsLmNvbSJ9fSwicm9vbSI6IioifQ.Lm4_XUHFK1e8jzeuz8GiYzcjUrk-BXbq6PYl6175HpFbiPRfZ9mDRbaqV3YtXcbjztRR00B26mBf28KTeqm-JuCiTJSQAmcYGWCXKTpT2ujuxbNokx7EdXqc1SHwW6Z34i559_PZSDejbo9d2QfyprdQm6-49rb0PjzWJYfXkhYuWIV0de-EOY0VCWvksbkg0ASBOCLTWFMug9POc65BgHuBm4NEX3p4xweffDcl1iWgHInK1_njwHeIVEJaXDj3sVScTw-LMA2cLGpNpXCy1x-ArLhKx0_bHP9fOe7KXndPSOCT6rt-n34hVQiRwT_HREh5WAIBsLksVCmx0Ri30A";
+      const hardcodedJWT = "eyJraWQiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQvZDM3ZmMzLVNBTVBMRV9BUFAiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6ImNoYXQiLCJpYXQiOjE3NTEwMjEyMTcsImV4cCI6MTc1MTAyODQxNywibmJmIjoxNzUxMDIxMjEyLCJzdWIiOiJ2cGFhcy1tYWdpYy1jb29raWUtNGQ5ODA1NWRjYjdhNGU3ZTgxOGUyMmFhMWI4NDc4MWQiLCJjb250ZXh0Ijp7ImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOnRydWUsIm91dGJvdW5kLWNhbGwiOnRydWUsInNpcC1vdXRib3VuZC1jYWxsIjpmYWxzZSwidHJhbnNjcmlwdGlvbiI6dHJ1ZSwicmVjb3JkaW5nIjp0cnVlLCJmbGlwIjpmYWxzZX0sInVzZXIiOnsiaGlkZGVuLWZyb20tcmVjb3JkZXIiOmZhbHNlLCJtb2RlcmF0b3IiOnRydWUsIm5hbWUiOiJtanVuYWlkMjI4MjAwMSIsImlkIjoiZ29vZ2xlLW9hdXRoMnwxMTAwMTA3OTgwNzY5MDc1MDMxMDYiLCJhdmF0YXIiOiIiLCJlbWFpbCI6Im1qdW5haWQyMjgyMDAxQGdtYWlsLmNvbSJ9fSwicm9vbSI6IioifQ.ScpIeiaUjpPrupv5xmfjaHUsjXbr9HqIh19hEqCbvvqHeFCLnk9oxeGfFA7UmlpMRdTqNlrZ2MUpUd8Kx-sTatWKR2spcIqP2T2uXLR5Sm26DUr3PWddvOCcgoZ63BSw-88jTNs2h4jTXa3snZ9ZVuO2aYKHtz4Md04M59vX_eBJlX6S4Z3teRD7bOZUzvtfHThfDJyjRF3nedV9QUR_YsaoNFw8S506pWSSBxY78RKXHCpsbt84zH4iLGBWOh54kkV0wiJNFRpcWpLk8gNb7zDLqDOSrxPCCNgCMJ12_R9qN1W_Jc2PPOSqgqQLZWwcgiZvSDswpCRQ21rvRgl5eQ";
       const room = `${JAAS_APP_ID}/${roomId}`;
       if (window.JitsiMeetExternalAPI && jitsiRef.current && !meetingEnded) {
         if (apiRef.current) {
@@ -530,6 +530,17 @@ export default function ConferenceRoom() {
         {!meetingEnded && <div ref={jitsiRef} className="jitsi-frame" />}
       </div>
       {/* Always show summary overlay after meeting end */}
+      {meetingEnded && !audioUploaded && (
+        <div className="loading-spinner">
+          <div className="spinner"></div>
+          <p>Uploading audio... Please wait.</p>
+        </div>
+      )}
+      {meetingEnded && audioUploaded && (
+        <button onClick={handleGenerateSummary} disabled={summaryLoading || summaryGenerated} className="generate-summary-btn">
+          Generate Summary
+        </button>
+      )}
       {meetingEnded && (
         <div className="summary-overlay">
           <div className="summary-card">

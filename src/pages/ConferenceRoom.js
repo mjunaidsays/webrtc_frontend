@@ -176,11 +176,11 @@ export default function ConferenceRoom() {
 
   // End meeting handler for all users
   const handleEndMeeting = async () => {
-    // 1. Stop and upload audio
-    await uploadAudioIfNeeded();
+    // 1. Start uploading audio (do not await)
+    uploadAudioIfNeeded();
     // 2. End the meeting (triggers backend processing)
     await fetch(endpoints.endMeeting(roomId), { method: 'POST' });
-    // 3. Update UI state
+    // 3. Update UI state immediately
     setMeetingEnded(true);
   };
 
@@ -534,6 +534,14 @@ export default function ConferenceRoom() {
         <div className="summary-overlay">
           <div className="summary-card">
             <h3>🎉 Meeting Ended!</h3>
+            {/* Show uploading indicator if still uploading */}
+            {isUploading && (
+              <div className="loading-container">
+                <div className="loading-spinner"></div>
+                <p>Uploading audio...</p>
+              </div>
+            )}
+            {/* Show Generate Summary button immediately after meeting ends */}
             {!summaryGenerated && !summaryLoading && !showSummary && !summaryError && (
               <>
                 <p>Click the button below to generate your meeting summary.</p>
